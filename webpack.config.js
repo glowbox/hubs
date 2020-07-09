@@ -244,6 +244,7 @@ module.exports = async (env, argv) => {
     entry: {
       index: path.join(__dirname, "src", "index.js"),
       hub: path.join(__dirname, "src", "hub.js"),
+      orbit: path.join(__dirname, "src", "orbit.js"),
       scene: path.join(__dirname, "src", "scene.js"),
       avatar: path.join(__dirname, "src", "avatar.js"),
       link: path.join(__dirname, "src", "link.js"),
@@ -314,7 +315,7 @@ module.exports = async (env, argv) => {
     performance: {
       // Ignore media and sourcemaps when warning about file size.
       assetFilter(assetFilename) {
-        return !/\.(map|png|jpg|gif|glb|webm)$/.test(assetFilename);
+        return !/\.(map|png|jpg|gif|glb|webm|ply)$/.test(assetFilename);
       }
     },
     module: {
@@ -379,6 +380,19 @@ module.exports = async (env, argv) => {
             }
           }
         },
+        /*
+        {
+          test: /\.(ply)$/,
+          use: {
+            loader: "file-loader",
+            options: {
+              // move required assets to output dir and add a hash for cache busting
+              name: "[path][name].[ext]",
+              // Make asset paths relative to /src
+              context: path.join(__dirname, "src")
+            }
+          }
+        },*/
         {
           test: /\.(svgi)$/,
           use: {
@@ -469,6 +483,15 @@ module.exports = async (env, argv) => {
         }
       }),
       new HTMLWebpackPlugin({
+        filename: "orbit.html",
+        template: path.join(__dirname, "src", "orbit.html"),
+        chunks: ["orbit"],
+        inject: "head",
+        minify: {
+          removeComments: false
+        }
+      }),
+      new HTMLWebpackPlugin({
         filename: "scene.html",
         template: path.join(__dirname, "src", "scene.html"),
         chunks: ["scene"],
@@ -524,15 +547,18 @@ module.exports = async (env, argv) => {
         {
           from: "src/hub.service.js",
           to: "hub.service.js"
-        }
-      ]),
-      new CopyWebpackPlugin([
+        },
         {
           from: "src/schema.toml",
           to: "schema.toml"
+        },
+        {
+			//Note:- No wildcard is specified hence will copy all files and folders
+			from: 'src/assets/ply', //Will resolve to RepoDir/src/assets 
+			to: 'assets/ply' //Copies all files from above dest to dist/assets
         }
       ]),
-      // Extract required css and add a content hash.
+       // Extract required css and add a content hash.
       new MiniCssExtractPlugin({
         filename: "assets/stylesheets/[name]-[contenthash].css",
         disable: argv.mode !== "production"
