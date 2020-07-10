@@ -12,6 +12,22 @@ const TOML = require("@iarna/toml");
 const fetch = require("node-fetch");
 const packageLock = require("./package-lock.json");
 const request = require("request");
+const mime = require("mime");
+
+function getConfig() {
+  const config = {};
+
+  // Setup config entries, modules, etc
+
+  mime.getType2 = mime.getType;
+  mime.getType = (key) => {
+    if (key.indexOf('.') === -1) {
+      return '';
+    }
+    return mime.getType2(key);
+  };
+  return config;
+}
 
 function createHTTPSConfig() {
   // Generate certs for the local webpack-dev-server.
@@ -315,7 +331,7 @@ module.exports = async (env, argv) => {
     performance: {
       // Ignore media and sourcemaps when warning about file size.
       assetFilter(assetFilename) {
-        return !/\.(map|png|jpg|gif|glb|webm|ply)$/.test(assetFilename);
+        return !/\.(map|png|jpg|gif|glb|webm|ply|mp4)$/.test(assetFilename);
       }
     },
     module: {
@@ -554,8 +570,8 @@ module.exports = async (env, argv) => {
         },
         {
 			//Note:- No wildcard is specified hence will copy all files and folders
-			from: 'src/assets/ply', //Will resolve to RepoDir/src/assets 
-			to: 'assets/ply' //Copies all files from above dest to dist/assets
+			from: 'src/static/', //Will resolve to RepoDir/src/assets 
+			to: 'static/' //Copies all files from above dest to dist/assets
         }
       ]),
        // Extract required css and add a content hash.

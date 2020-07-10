@@ -1246,7 +1246,15 @@
         <a-entity id="objects-root">
             <a-entity id="objects-scene">
 
-                <a-entity id="custom-scene" ply-model>
+                <!--
+                <a-entity id="ply" ply-model>
+                </a-entity>
+                -->
+
+                <a-entity depthkit-player="type: wire;
+                          metaPath: /static/John.json;
+                          videoPath: /static/John.mp4;
+                          autoplay: true;">
                 </a-entity>
 
             </a-entity>

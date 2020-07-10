@@ -41,6 +41,9 @@ import "./naf-dialog-adapter";
 
 import "./components/ply-model";
 
+import "./components/depthkit-player";
+
+
 import "./components/scene-components";
 import "./components/scale-in-screen-space";
 import "./components/mute-mic";
