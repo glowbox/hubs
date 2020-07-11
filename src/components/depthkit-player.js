@@ -43,27 +43,9 @@ AFRAME.registerComponent('depthkit-player', {
     init: function () {
         var scene = this.el.sceneEl.object3D;
 
-        console.log("Depthkit Init - meta:" + this.data.metaPath);
-        
-        this.player = new Depthkit();
-        this.player.load(this.data.metaPath, this.data.videoPath,
-            dkCharacter => {
-                this.character = dkCharacter;
-
-                console.log("Depthkit Complete");
-
-                //Position and rotation adjustments
-                dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
-                // dkCharacter.rotation.y = Math.PI;
-                dkCharacter.position.set( -0.25, 0.92, 0 );
-
-                // Depthkit video playback control
-                this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
-                this.player.setLoop( true );
-
-                //Add the character to the scene
-                scene.add(this.character);
-            });
+        this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
+            this.loadVideo();
+        });
     },
   
     /**
@@ -95,9 +77,32 @@ AFRAME.registerComponent('depthkit-player', {
      */
     play: function () {
 
-        console.log("Depthkit Play");
+    },
 
-        this.player.play();
+    loadVideo: function(){
+        var scene = this.el.sceneEl.object3D;
 
+        console.log("Depthkit loadVideo - meta:" + this.data.metaPath);
+        
+        this.player = new Depthkit();
+        this.player.load(this.data.metaPath, this.data.videoPath,
+            dkCharacter => {
+                this.character = dkCharacter;
+
+                console.log("Depthkit Complete");
+
+                //Position and rotation adjustments
+                dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
+                // dkCharacter.rotation.y = Math.PI;
+                dkCharacter.position.set( -0.25, 0.92, 0 );
+
+                // Depthkit video playback control
+                this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
+                this.player.setLoop( true );
+                this.player.play();
+
+                //Add the character to the scene
+                scene.add(this.character);
+            });
     }
   });

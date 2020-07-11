@@ -29,7 +29,7 @@ AFRAME.registerComponent("ply-model", {
         var scene = this.el.sceneEl.object3D;
         var loader = new PLYLoader();
 
-        const sprite = new TextureLoader().load("/assets/ply/texture_64.png");
+        const sprite = new TextureLoader().load("/static/ply/texture_64.png");
 
         const pointsMaterial = new PointsMaterial({
             size: 0.025,
@@ -43,7 +43,7 @@ AFRAME.registerComponent("ply-model", {
             map: sprite
           });
 
-        loader.load( "/assets/ply/points_0.ply", function ( geometry ) {
+        loader.load( "/static/ply/points_0.ply", function ( geometry ) {
 
             console.log("Plyloader Loaded ");
             /*

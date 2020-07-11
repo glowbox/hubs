@@ -1133,6 +1133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       setupLobbyCamera();
     }
 
+    console.log("environment-scene-loaded");
     // This will be run every time the environment is changed (including the first load.)
     remountUI({ environmentSceneLoaded: true });
     scene.emit("environment-scene-loaded");
