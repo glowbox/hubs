@@ -123,8 +123,11 @@ const getTs = (() => {
       url.searchParams.set("token", payload.meta.access_token);
       uploadedUrl = url.toString();
     } catch (e) {
-      step.text = `Upload failed. Retrying attempt #${attempt + 1}/3`;
-      await runUpload(attempt + 1);
+      console.log(e);
+      throw new Error("Upload failed. " + e);
+
+      //step.text = `Upload failed. Retrying attempt #${attempt + 1}/3`;
+      //await runUpload(attempt + 1);
     }
   };
 

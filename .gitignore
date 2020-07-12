@@ -67,3 +67,5 @@ results/
 .ret.credentials
 
 src/static/
+
+_build.tar.gz
