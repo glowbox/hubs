@@ -41,8 +41,6 @@ AFRAME.registerComponent('depthkit-player', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-        var scene = this.el.sceneEl.object3D;
-
         this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
             this.loadVideo();
         });
@@ -92,17 +90,17 @@ AFRAME.registerComponent('depthkit-player', {
                 console.log("Depthkit Complete");
 
                 //Position and rotation adjustments
-                dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
+                //dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
                 // dkCharacter.rotation.y = Math.PI;
-                dkCharacter.position.set( -0.25, 0.92, 0 );
+                //dkCharacter.position.set( -0.25, 0.92, 0 );
 
                 // Depthkit video playback control
-                this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
+                //this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
                 this.player.setLoop( true );
                 this.player.play();
 
                 //Add the character to the scene
-                scene.add(this.character);
+                this.el.object3D.add(this.character);
             });
     }
   });

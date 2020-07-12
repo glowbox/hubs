@@ -1246,21 +1246,28 @@
         <a-entity id="objects-root">
             <a-entity id="objects-scene">
 
-                <!--
-                <a-entity id="ply" ply-model>
+                <a-entity id="ply" 
+                    body-helper="type: static; scaleAutoUpdate: false"
+                    scale="2 2 2"
+                    ply-model="
+                        plypath: /static/ply/points_0.ply;
+                        texturepath: /static/ply/texture_64.png;
+                        ">
                 </a-entity>
-                -->
-
-                <a-entity 
+        
+                <a-entity                 
                     id="depthkit-test"
-                    depthkit-player="type: wire;
-                          metaPath: /static/John.txt;
-                          videoPath: /static/John.mp4;
-                          autoplay: true;">
+                    body-helper="type: static; scaleAutoUpdate: false" 
+                    position="0 2 0"
+                    depthkit-player="
+                        metaPath: /static/TAKE_08_22_18_23_39_Export_08_27_15_14_46.txt;
+                        videoPath: /static/TAKE_08_22_18_23_39_Export_08_27_15_14_46.mp4;
+                        ">
                 </a-entity>
-
+    
             </a-entity>
         </a-entity>
+
 
         <a-entity
             id="pen-spawner"

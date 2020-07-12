@@ -21,15 +21,22 @@ import {
 
 AFRAME.registerComponent("ply-model", {
     schema: {
-      src: { type: "string" },      
+      plypath: { type: "string" },
+      texturepath: { type: "string" }      
     },
 
     init() {
-        console.log("Plyloader Init");
-        var scene = this.el.sceneEl.object3D;
+      this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
+        this.loadPly();
+      });
+    },
+
+  loadPly(){
+      console.log("Plyloader Load");
+        var parent = this.el.object3D;
         var loader = new PLYLoader();
 
-        const sprite = new TextureLoader().load("/static/ply/texture_64.png");
+        const sprite = new TextureLoader().load( this.data.texturepath);
 
         const pointsMaterial = new PointsMaterial({
             size: 0.025,
@@ -43,38 +50,18 @@ AFRAME.registerComponent("ply-model", {
             map: sprite
           });
 
-        loader.load( "/static/ply/points_0.ply", function ( geometry ) {
+        loader.load( this.data.plypath, function ( geometry ) {
 
-            console.log("Plyloader Loaded ");
-            /*
-            geometry.computeVertexNormals();
-
-            var material = new THREE.MeshStandardMaterial( { color: 0x0055ff, flatShading: true } );
-            var mesh = new THREE.Mesh( geometry, material );
-
-            mesh.position.y = - 0.2;
-            mesh.position.z = 0.3;
-            mesh.rotation.x = - Math.PI / 2;
-            mesh.scale.multiplyScalar( 0.001 );
-
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-
-            scene.add( mesh );*/
-
-            let cloud = new Object3D();
+            console.log("Plyloader Loaded ");            
             const pointCloud = new Points(geometry, pointsMaterial);
             pointCloud.sortParticles = true;    
-            cloud.add(pointCloud);
-            scene.add(cloud)
+            parent.add(pointCloud)
 
         },  function(text){ 
             console.log("Plyloader Progress " + text);
         }, function(error){ 
             console.log("Plyloader Error " + error);
         } );
-
-        console.log("Plyloader Complete");
     },
 
     update() {
