@@ -18,15 +18,14 @@ import {
 
 
 import "depthkit";
+
 //AFrame DepthKit.js wrapper entity
 AFRAME.registerComponent('depthkit-player', {
 
     schema: {
       type: {type: 'string', default: 'mesh'},
-      videoPath: {type: 'string'},
       metaPath: {type: 'string'},
-      loop: {type: 'boolean', default: true},
-      autoplay: {type: 'boolean', default: true}
+      videoPath : {type: 'string'}
     },
   
     /**
@@ -41,9 +40,13 @@ AFRAME.registerComponent('depthkit-player', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
+      /*
         this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
             this.loadVideo();
         });
+      */
+     console.log("depthkit inti");
+       this.loadVideo();
     },
   
     /**
@@ -80,7 +83,7 @@ AFRAME.registerComponent('depthkit-player', {
     loadVideo: function(){
         var scene = this.el.sceneEl.object3D;
 
-        console.log("Depthkit loadVideo - meta:" + this.data.metaPath);
+        console.log("Depthkit loadVideo - meta:" + this.data.metaPath + " video:" + this.data.videoPath);
         
         this.player = new Depthkit();
         this.player.load(this.data.metaPath, this.data.videoPath,

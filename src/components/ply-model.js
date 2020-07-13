@@ -26,9 +26,12 @@ AFRAME.registerComponent("ply-model", {
     },
 
     init() {
+      /*
       this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
         this.loadPly();
       });
+      */
+     this.loadPly();
     },
 
   loadPly(){

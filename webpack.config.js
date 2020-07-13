@@ -260,7 +260,6 @@ module.exports = async (env, argv) => {
     entry: {
       index: path.join(__dirname, "src", "index.js"),
       hub: path.join(__dirname, "src", "hub.js"),
-      orbit: path.join(__dirname, "src", "orbit.js"),
       scene: path.join(__dirname, "src", "scene.js"),
       avatar: path.join(__dirname, "src", "avatar.js"),
       link: path.join(__dirname, "src", "link.js"),
@@ -497,16 +496,7 @@ module.exports = async (env, argv) => {
         minify: {
           removeComments: false
         }
-      }),
-      new HTMLWebpackPlugin({
-        filename: "orbit.html",
-        template: path.join(__dirname, "src", "orbit.html"),
-        chunks: ["orbit"],
-        inject: "head",
-        minify: {
-          removeComments: false
-        }
-      }),
+      }),      
       new HTMLWebpackPlugin({
         filename: "scene.html",
         template: path.join(__dirname, "src", "scene.html"),
@@ -567,12 +557,7 @@ module.exports = async (env, argv) => {
         {
           from: "src/schema.toml",
           to: "schema.toml"
-        },
-        {
-			//Note:- No wildcard is specified hence will copy all files and folders
-			from: 'src/static/', //Will resolve to RepoDir/src/assets 
-			to: 'static/' //Copies all files from above dest to dist/assets
-        }
+        }        
       ]),
        // Extract required css and add a content hash.
       new MiniCssExtractPlugin({

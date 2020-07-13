@@ -16,6 +16,7 @@ import { patchWebGLRenderingContext } from "./utils/webgl";
 patchWebGLRenderingContext();
 
 import "three/examples/js/loaders/GLTFLoader";
+
 import "networked-aframe/src/index";
 import "naf-janus-adapter";
 import "aframe-rounded";
@@ -37,6 +38,11 @@ import { addAnimationComponents } from "./utils/animation";
 import { authorizeOrSanitizeMessage } from "./utils/permissions-utils";
 import Cookies from "js-cookie";
 import "./naf-dialog-adapter";
+
+import "./components/ply-model";
+
+import "./components/depthkit-player";
+
 
 import "./components/scene-components";
 import "./components/scale-in-screen-space";
@@ -395,6 +401,7 @@ async function updateEnvironmentForHub(hub, entryManager) {
   }
 
   console.log(`Scene URL: ${sceneUrl}`);
+  console.log(`Scene URL2: ${sceneUrl}`);
 
   let environmentEl = null;
 
@@ -1126,6 +1133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       setupLobbyCamera();
     }
 
+    console.log("environment-scene-loaded");
     // This will be run every time the environment is changed (including the first load.)
     remountUI({ environmentSceneLoaded: true });
     scene.emit("environment-scene-loaded");
@@ -1563,11 +1571,49 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const incomingMessage = { name, type, body, maySpawn, sessionId: session_id };
 
-    if (scene.is("vr-mode")) {
-      createInWorldLogMessage(incomingMessage);
+    if (body.startsWith("dk:"))  {
+      //dk: http://location/video.mp4 http://location/meta.txt
+      const commandParts = body.split(/\s+/);
+      console.log("depthkit " + commandParts[1] + " " + commandParts[2]);
+
+      const player = document.createElement("a-entity");
+      player.setAttribute("depthkit-player",{
+        videoPath: commandParts[1],
+        metaPath: commandParts[2]
+      });
+
+      player.setAttribute("body-helper",{
+        type: "static", scaleAutoUpdate: false
+      });
+
+      scene.appendChild(player);
+
+
+    }else if (body.startsWith("ply:")) {
+      //ply: http://location/ply.ply
+      const commandParts = body.split(/\s+/);
+      console.log("ply " + commandParts);
+
+      const model = document.createElement("a-entity");
+      model.setAttribute("ply-model",{
+        plypath: commandParts[1],
+        texturepath: commandParts[2]
+      });
+
+      model.setAttribute("body-helper",{
+        type: "static", scaleAutoUpdate: false
+      });
+
+      scene.appendChild(model);
+    }else{
+      if (scene.is("vr-mode")) {
+        createInWorldLogMessage(incomingMessage);
+      }
+  
+      addToPresenceLog(incomingMessage);
     }
 
-    addToPresenceLog(incomingMessage);
+    console.log("message:" + name + " " + type + " " + body);
   });
 
   hubPhxChannel.on("hub_refresh", ({ session_id, hubs, stale_fields }) => {
@@ -1630,4 +1676,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   authChannel.setSocket(socket);
   linkChannel.setSocket(socket);
+
 });
