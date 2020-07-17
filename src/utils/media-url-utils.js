@@ -163,8 +163,12 @@ const hubsSceneRegex = /https?:\/\/[^/]+\/scenes\/(\w+)\/?\S*/;
 const hubsAvatarRegex = /https?:\/\/[^/]+\/avatars\/(?<id>\w+)\/?\S*/;
 const hubsRoomRegex = /(https?:\/\/)?[^/]+\/([a-zA-Z0-9]{7})\/?\S*/;
 
+
+//export const isLocalHubsUrl = async url =>
+//  (await isHubsServer(url)) && new URL(url).origin === document.location.origin;
+
 export const isLocalHubsUrl = async url =>
-  (await isHubsServer(url)) && new URL(url).origin === document.location.origin;
+    (await isHubsServer(url)) 
 
 export const isHubsSceneUrl = async url => (await isHubsServer(url)) && hubsSceneRegex.test(url);
 export const isLocalHubsSceneUrl = async url => (await isHubsSceneUrl(url)) && (await isLocalHubsUrl(url));
