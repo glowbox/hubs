@@ -66,6 +66,7 @@
     "dayjs-ext": "^2.2.0",
     "deepmerge": "^2.1.1",
     "depthkit": "file:../../../Depthkit.js-master",
+    "depthkit2d": "file:../../../depthkit2d",
     "detect-browser": "^3.0.1",
     "draft-js": "^0.10.5",
     "draft-js-counter-plugin": "^2.0.1",

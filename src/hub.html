@@ -61,21 +61,6 @@
             <a-asset-item id="drawing-pen" response-type="arraybuffer" src="./assets/models/DrawingPen.glb"></a-asset-item>
             <a-asset-item id="spawn-point" response-type="arraybuffer" src="./assets/models/spawn-point.glb"></a-asset-item>
 
-
-            <template id="template-ply-model">
-                <a-entity
-                    body-helper="type: static; scaleAutoUpdate: false"
-                    ply-model="">
-                </a-entity>
-            </template>
-
-            <template id="template-depthkit-player">
-                <a-entity                                    
-                    body-helper="type: static; scaleAutoUpdate: false" 
-                    depthkit-player="">
-                </a-entity>
-            </template>
-
             <template id="template-waypoint-avatar">
                 <a-entity waypoint></a-entity>
             </template>
@@ -1260,8 +1245,23 @@
         <!-- Objects -->
         <a-entity id="objects-root">
             <a-entity id="objects-scene">
-
+   
+                <!-- 
+                    <a-entity
+                        body-helper="type: static; scaleAutoUpdate: false"
+                        ply-model="">
+                    </a-entity>
     
+                    <a-entity                                    
+                        body-helper="type: static; scaleAutoUpdate: false" 
+                        depthkit-player="">
+                    </a-entity>
+
+                    <a-entity                                    
+                        body-helper="type: static; scaleAutoUpdate: false" 
+                        depthkit2d-player="videoPath:https://mozilla-hubs-3-assets.virtualvenue-internal.info/assets/TAKE_08_22_18_23_39_Export_08_27_15_14_46.mp4;">
+                    </a-entity>
+                --> 
             </a-entity>
         </a-entity>
 

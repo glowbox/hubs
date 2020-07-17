@@ -43,6 +43,8 @@ import "./components/ply-model";
 
 import "./components/depthkit-player";
 
+import "./components/depthkit2d-player";
+
 
 import "./components/scene-components";
 import "./components/scale-in-screen-space";

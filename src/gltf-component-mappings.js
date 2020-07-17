@@ -391,9 +391,14 @@ AFRAME.GLTFModelPlus.registerComponent("audio-settings", "audio-settings", (el, 
 AFRAME.GLTFModelPlus.registerComponent("ply-model", "ply-model");
 
 AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el, _componentName, componentData) => {
-  console.log("register depthkit %o %s ", componentData, componentData.src);
   el.setAttribute("depthkit-player", {
     metaPath: "",
+    videoPath : componentData.src.trim()
+  });  
+});
+
+AFRAME.GLTFModelPlus.registerComponent("depthkit2d-player", "depthkit2d-player", (el, _componentName, componentData) => {
+  el.setAttribute("depthkit2d-player", {
     videoPath : componentData.src.trim()
   });  
 });
