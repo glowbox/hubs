@@ -1,7 +1,7 @@
 /**
  * Loads a depthkit capture\
-* @namespace depthkit-player
- * @component depthkit-player
+* @namespace depthkit2d-player
+ * @component depthkit2d-player
  */
 import {
     Scene,
