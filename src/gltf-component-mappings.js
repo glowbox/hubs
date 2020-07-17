@@ -387,3 +387,13 @@ AFRAME.GLTFModelPlus.registerComponent("networked-drawing-buffer", "networked-dr
 AFRAME.GLTFModelPlus.registerComponent("audio-settings", "audio-settings", (el, _componentName, componentData) => {
   el.sceneEl.systems["hubs-systems"].audioSettingsSystem.updateAudioSettings(componentData);
 });
+
+AFRAME.GLTFModelPlus.registerComponent("ply-model", "ply-model");
+
+AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el, _componentName, componentData) => {
+  console.log("register depthkit %o %s ", componentData, componentData.src);
+  el.setAttribute("depthkit-player", {
+    metaPath: "",
+    videoPath : componentData.src.trim()
+  });  
+});

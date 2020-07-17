@@ -45,8 +45,8 @@ AFRAME.registerComponent('depthkit-player', {
             this.loadVideo();
         });
       */
-     console.log("depthkit inti");
-       this.loadVideo();
+      console.log("Depthkit init " + this.data.videoPath);
+      this.loadVideo();
     },
   
     /**
@@ -83,6 +83,16 @@ AFRAME.registerComponent('depthkit-player', {
     loadVideo: function(){
         var scene = this.el.sceneEl.object3D;
 
+        if( this.data.metaPath.length < 5){
+          let isMp4 = this.data.videoPath.toLowerCase().endsWith(".mp4");
+          if (isMp4) {
+            this.data.metaPath  = this.data.videoPath.substring(0, this.data.videoPath.length - 4) + ".txt";
+          }else{
+            console.error("depthkit-player: video url invalid:" + this.data.videoPath);
+            return;
+          }  
+        }
+  
         console.log("Depthkit loadVideo - meta:" + this.data.metaPath + " video:" + this.data.videoPath);
         
         this.player = new Depthkit();
@@ -90,7 +100,7 @@ AFRAME.registerComponent('depthkit-player', {
             dkCharacter => {
                 this.character = dkCharacter;
 
-                console.log("Depthkit Complete");
+                console.log("Depthkit Loaded");
 
                 //Position and rotation adjustments
                 //dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
