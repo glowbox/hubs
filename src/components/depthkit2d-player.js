@@ -33,13 +33,12 @@ AFRAME.registerComponent('depthkit2d-player', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-      /*
-        this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
-            this.loadVideo();
-        });
-      */
+      this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
+          this.loadVideo();
+      });
+
       console.log("Depthkit2D init " + this.data.videoPath);
-      this.loadVideo();
+      //this.loadVideo();
     },
   
     /**
@@ -74,22 +73,21 @@ AFRAME.registerComponent('depthkit2d-player', {
     },
 
     loadVideo: function(){
-        console.log("Depthkit2D loadVideo:" + this.data.videoPath);
-        
-        this.player = new Depthkit2D();
-        this.player.load(this.data.videoPath,
-            dkCharacter => {
-                this.character = dkCharacter;
+      console.log("Depthkit2D loadVideo:" + this.data.videoPath);        
+      this.player = new Depthkit2D();
+      this.player.load(this.data.videoPath,
+          dkCharacter => {
+              this.character = dkCharacter;
 
-                console.log("Depthkit Loaded");
+              console.log("Depthkit Loaded");
 
-                // Depthkit video playback control
-                this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
-                this.player.setLoop( true );
-                this.player.play();
+              // Depthkit video playback control
+              this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
+              this.player.setLoop( true );
+              this.player.play();
 
-                //Add the character to the scene
-                this.el.object3D.add(this.character);
-            });
+              //Add the character to the scene
+              this.el.object3D.add(this.character);
+          });
     }
   });

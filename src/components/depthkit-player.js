@@ -40,13 +40,13 @@ AFRAME.registerComponent('depthkit-player', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-      /*
+      
         this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
             this.loadVideo();
         });
-      */
+      
       console.log("Depthkit init " + this.data.videoPath);
-      this.loadVideo();
+      //this.loadVideo();
     },
   
     /**
@@ -64,7 +64,18 @@ AFRAME.registerComponent('depthkit-player', {
     /**
      * Called on each scene tick.
      */
-    // tick: function (t) { },
+    tick: function (t) { 
+      if( this.player == null )return;
+
+      //console.log("playing " + this.player.video + " " + this.player.video.currentTime)
+
+      if (!this.player.video.isPlaying) {
+        this.player.video.play();    
+      }else{
+        //console.log("playing " + this.player.video)
+      }
+    }
+    ,
   
     /**
      * Called when entity pauses.
