@@ -40,13 +40,8 @@ AFRAME.registerComponent('depthkit-player', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-      
-        this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
-            this.loadVideo();
-        });
-      
       console.log("Depthkit init " + this.data.videoPath);
-      //this.loadVideo();
+      this.loadVideo();
     },
   
     /**
@@ -125,6 +120,8 @@ AFRAME.registerComponent('depthkit-player', {
 
                 //Add the character to the scene
                 this.el.object3D.add(this.character);
+                this.el.emit("video-loaded", { projection: "depthkit3d"});
+
             });
     }
   });

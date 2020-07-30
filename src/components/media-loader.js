@@ -608,6 +608,29 @@ AFRAME.registerComponent("media-loader", {
         if (this.el.components["position-at-border__freeze-unprivileged"]) {
           this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
         }
+      } else if( contentType.startsWith("depthkit")) {
+        this.el.removeAttribute("gltf-model-plus");
+        this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("depthkit-player");
+
+        this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
+
+        this.el.addEventListener(
+          "video-loaded",
+          e => {
+            this.onMediaLoaded(e.detail.projection === "flat" ? SHAPE.BOX : null);            
+          },
+          { once: true }
+        );
+
+        this.el.setAttribute(
+          "depthkit-player",
+           {
+            videoPath: canonicalUrl           
+          });
+
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);
       }
