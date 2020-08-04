@@ -12,6 +12,7 @@ import {
     WebGLRenderer,
     TextureLoader,
     AdditiveBlending,
+    NormalBlending,
     PointsMaterial,
     Points,
     Vector3,
@@ -25,31 +26,37 @@ AFRAME.registerComponent("ply-model", {
       texturepath: { type: "string" }      
     },
 
-    init() {
-      /*
-      this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
-        this.loadPly();
-      });
-      */
+    init() {      
      this.loadPly();
     },
 
   loadPly(){
-      console.log("Plyloader Load");
-        var parent = this.el.object3D;
-        var loader = new PLYLoader();
+        console.log("Plyloader Load");
+        let el = this.el;
+        let loader = new PLYLoader();
+
+        if( this.data.texturepath.length < 5){
+          let isPly = this.data.plypath.toLowerCase().endsWith(".ply");
+          if (isPly) {
+            this.data.texturepath  = this.data.plypath.substring(0, this.data.plypath.length - 4) + ".png";
+          }else{
+            console.error("ply-loader: model url invalid:" + this.data.plypath);
+            return;
+          }  
+        }
 
         const sprite = new TextureLoader().load( this.data.texturepath);
 
         const pointsMaterial = new PointsMaterial({
-            size: 0.025,
+            size: 0.1,
             depthTest: false,
             depthWrite: false,
-            alphaTest: 0.1,
-            opacity: 0.25,
+            alphaTest: 0.02,
+            opacity: 0.05,
             transparent: true,
             vertexColors: true,
             blending: AdditiveBlending,
+            sizeAttenuation: true,
             map: sprite
           });
 
@@ -58,7 +65,8 @@ AFRAME.registerComponent("ply-model", {
             console.log("Plyloader Loaded ");            
             const pointCloud = new Points(geometry, pointsMaterial);
             pointCloud.sortParticles = true;    
-            parent.add(pointCloud)
+            el.object3D.add(pointCloud);
+            el.emit("model-loaded", { projection: ""});
 
         },  function(text){ 
             console.log("Plyloader Progress " + text);

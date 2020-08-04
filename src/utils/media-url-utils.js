@@ -19,7 +19,8 @@ const commonKnownContentTypes = {
   basis: "image/basis",
   m3u8: "application/vnd.apple.mpegurl",
   mpd: "application/dash+xml",
-  depthkit: "video/depthkit"
+  depthkit: "video/depthkit",
+  ply: "model/ply"
 };
 
 // thanks to https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding

@@ -54,7 +54,13 @@ AFRAME.registerComponent('depthkit-player', {
      * Called when a component is removed (e.g., via removeAttribute).
      * Generally undoes all modifications to the entity.
      */
-    remove: function () {},
+    remove: function () {
+
+      console.log("Depthkit remove");
+      this.el.object3D.remove(this.character);
+      delete this.player;
+
+    },
   
     /**
      * Called on each scene tick.
