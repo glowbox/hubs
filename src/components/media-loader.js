@@ -172,6 +172,7 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-pager");
     this.el.removeAttribute("media-video");
     this.el.removeAttribute("media-pdf");
+    this.el.removeAttribute("depthkit-player");
     this.el.setAttribute("media-image", { src: "error" });
     this.clearLoadingTimeout();
   },
@@ -349,6 +350,7 @@ AFRAME.registerComponent("media-loader", {
       this.el.removeAttribute("media-video");
       this.el.removeAttribute("media-pdf");
       this.el.removeAttribute("media-image");
+      this.el.removeAttribute("depthkit-player");
     }
 
     try {
@@ -434,6 +436,8 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("gltf-model-plus");
         this.el.removeAttribute("media-image");
         this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("depthkit-player");
+
         this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
         this.el.addEventListener(
           "video-loaded",
@@ -465,6 +469,8 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("depthkit-player");
+
         this.el.addEventListener(
           "image-loaded",
           e => {
@@ -538,6 +544,8 @@ AFRAME.registerComponent("media-loader", {
         this.el.removeAttribute("media-video");
         this.el.removeAttribute("media-pdf");
         this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("depthkit-player");
+
         this.el.addEventListener(
           "model-loaded",
           () => {
@@ -608,6 +616,54 @@ AFRAME.registerComponent("media-loader", {
         if (this.el.components["position-at-border__freeze-unprivileged"]) {
           this.el.setAttribute("position-at-border__freeze-unprivileged", { isFlat: true });
         }
+      } else if( contentType.startsWith("depthkit")) {
+        this.el.removeAttribute("gltf-model-plus");
+        this.el.removeAttribute("media-video");
+        this.el.removeAttribute("media-pdf");
+        this.el.removeAttribute("media-pager");
+        this.el.removeAttribute("depthkit-player");
+
+        this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
+
+        this.el.addEventListener(
+          "video-loaded",
+          e => {
+            this.onMediaLoaded(e.detail.projection === "flat" ? SHAPE.BOX : null);            
+          },
+          { once: true }
+        );
+
+        this.el.setAttribute(
+          "depthkit-player",
+           {
+            videoPath: canonicalUrl           
+          });
+      }else if( contentType.startsWith("model/ply")) {
+          this.el.removeAttribute("gltf-model-plus");
+          this.el.removeAttribute("media-video");
+          this.el.removeAttribute("media-pdf");
+          this.el.removeAttribute("media-pager");
+          this.el.removeAttribute("depthkit-player");
+
+          //ply models are large, in the background, we don't want them to be selectable, moveable like other media elements
+          //so instead of using the current element we create a new one at the root of the scene
+          const model = document.createElement("a-entity");
+          model.setAttribute("ply-model",{
+            plypath: canonicalUrl
+          });
+          model.addEventListener(
+            "model-loaded",
+            e => {
+              console.log("ply loaded");
+            });
+
+          model.setAttribute("body-helper",{
+            type: "static", scaleAutoUpdate: false
+          });
+    
+          this.el.sceneEl.appendChild(model);
+  
+
       } else {
         throw new Error(`Unsupported content type: ${contentType}`);
       }
