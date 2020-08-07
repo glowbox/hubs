@@ -1590,6 +1590,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       scene.appendChild(player);
+    }else if( body.startsWith("live:")){
+      const commandParts = body.split(/\s+/);
+      console.log("live " + commandParts);
+
+      const stream = document.createElement("a-entity");
+      stream.setAttribute("depthkit-stream",{
+        videoPath: commandParts[1]
+      });
+
+      stream.setAttribute("body-helper",{
+        type: "static", scaleAutoUpdate: false
+      });
+
+      scene.appendChild(stream);
 
 
     }else if (body.startsWith("ply:")) {
