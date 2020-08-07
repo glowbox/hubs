@@ -151,13 +151,23 @@ void main()
     float z = depth * (maxdepth - mindepth) + mindepth;
     
     vec4 worldPos = vec4(position.xy, -z, 1.0);
-    
     worldPos.w = 1.0;
+
+    
+    float scale = 1.0;
+    vec4 mvPosition = vec4( worldPos.xyz, 1.0 );
+    mvPosition = modelViewMatrix * mvPosition;
+
 
     gl_Position = projectionMatrix * modelViewMatrix * worldPos;
     vUv = uv;
     debug = vec3(1, 0.5, 0.0);
-    gl_PointSize = 1.5;
+    
+    
+    gl_PointSize = 3.0;
+    gl_PointSize *= ( scale / - mvPosition.z );
+
+    
     //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
