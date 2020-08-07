@@ -17,13 +17,35 @@ import {
     Points,
     Vector3,
     CatmullRomCurve3,
-    Object3D
+    Object3D,
+    DoubleSide
   } from 'three'
 
 import HLS from "hls.js";
 import configs from "../utils/configs";
 import { proxiedUrlFor } from "../utils/media-url-utils";
 import { Mesh } from 'three';
+
+const metaJson = `{
+	"_versionMajor" : "0",
+	"_versionMinor" : "1",
+	"depthFocalLength" : {
+		"x" : 320,
+		"y" : 240
+	},
+	"depthImageSize" : {
+		"x" : 640,
+		"y" : 480
+	},
+	"depthPrincipalPoint" : {
+		"x" : 0.0,
+		"y" : 0.0
+	},
+	"farClip" : 1.0,
+	"format" : "perpixel",
+	"nearClip": 0.01,
+	"clipEpsilon" : 0.00162288
+}`;
 
 const fragmentShader = `
 uniform sampler2D map;
@@ -33,11 +55,13 @@ uniform float height;
 
 varying vec2 vUv;
 varying vec4 vPos;
-
-float _DepthBrightnessThreshold = 0.4;  // per-pixel brightness threshold, used to refine edge geometry from eroneous edge depth samples
+varying vec3 debug;
 
 #define BRIGHTNESS_THRESHOLD_OFFSET 0.01
 #define FLOAT_EPS 0.00001
+
+const float _DepthSaturationThreshhold = 0.3; //a given pixel whose saturation is less than half will be culled (old default was .5)
+const float _DepthBrightnessThreshold = 0.3; //a given pixel whose brightness is less than half will be culled (old default was .9)
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -48,34 +72,92 @@ vec3 rgb2hsv(vec3 c)
     return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + FLOAT_EPS)), d / (q.x + FLOAT_EPS), q.x);
 }
 
+float depthForPoint(vec2 texturePoint)
+{
+    vec4 depthsample = texture2D(map, texturePoint);
+    vec3 depthsamplehsv = rgb2hsv(depthsample.rgb);
+    return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
+}
+
 void main() {
 
-    float verticalScale = 480.0 / 720.0;
+  /*float verticalScale = 480.0 / 720.0;
+  float verticalOffset = 1.0 - verticalScale;
+  vec2 colorUv = vUv * vec2(0.5, verticalScale) + vec2(0, verticalOffset);
+  vec2 depthUv = colorUv + vec2(0.5, 0.0);*/
+
+
+    float verticalScale = 0.5;//480.0 / 720.0;
     float verticalOffset = 1.0 - verticalScale;
 
-    vec2 colorUv = vUv * vec2(0.5, verticalScale) + vec2(0, verticalOffset);
-    vec2 depthUv = colorUv + vec2(0.5, 0.0);
+    vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
+    vec2 depthUv = colorUv - vec2(0.0, 0.5);
 
     vec4 colorSample = texture2D(map, colorUv); 
     vec4 depthSample = texture2D(map, depthUv); 
 
     vec3 hsv = rgb2hsv(depthSample.rgb);
-
-    float alpha = hsv.b > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
+    float depth = hsv.b;
+    float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
 
     colorSample.a *= (alpha * opacity);
 
-    gl_FragColor = colorSample;
+    gl_FragColor = colorSample;//vec4(debug, 1);
 }
 `;
 
 const vertexShader = `
+
+uniform sampler2D map;
+
 varying vec2 vUv;
+varying vec3 debug;
+
+const float _DepthSaturationThreshhold = 0.3; //a given pixel whose saturation is less than half will be culled (old default was .5)
+const float _DepthBrightnessThreshold = 0.3; //a given pixel whose brightness is less than half will be culled (old default was .9)
+const float  _Epsilon = .03;
+
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+    float d = q.x - min(q.w, q.y);
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + _Epsilon)), d / (q.x + _Epsilon), q.x);
+}
+
+float depthForPoint(vec2 texturePoint)
+{
+    vec4 depthsample = texture2D(map, texturePoint);
+    vec3 depthsamplehsv = rgb2hsv(depthsample.rgb);
+    return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
+}
 
 void main()
 {
-    vUv = uv;    
-    gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
+
+    float mindepth = 0.0;
+    float maxdepth = 1.0;
+
+    float verticalScale = 0.5;//480.0 / 720.0;
+    float verticalOffset = 1.0 - verticalScale;
+
+    vec2 colorUv = uv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
+    vec2 depthUv = colorUv - vec2(0.0, 0.5);
+    
+    float depth = depthForPoint(depthUv);
+
+    float z = depth * (maxdepth - mindepth) + mindepth;
+    
+    vec4 worldPos = vec4(position.xy, -z, 1.0);
+    
+    worldPos.w = 1.0;
+
+    gl_Position = projectionMatrix * modelViewMatrix * worldPos;
+    vUv = uv;
+    debug = vec3(1, 0.5, 0.0);
+    //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
 
@@ -85,13 +167,11 @@ const HLS_TIMEOUT = 2500;
 
 class VideoStreamTexture {
 
-    constructor() {
-        this.video = this.createVideoEl();
+    constructor(_videoElement) {
+        this.video = _videoElement ? _videoElement : this.createVideoEl();
         
         this.texture = new VideoTexture(this.video);
         this.hls = null;
-        
-        console.log("CRDATE VIDEO TEX:", this.texture);
       }
     
       update() {
@@ -236,7 +316,7 @@ AFRAME.registerComponent('depthkit-stream', {
      */
     init: function () {
       this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
-          this.loadVideo();
+          this._loadVideo();
       });
       this.videoTexture = new VideoStreamTexture();
     },
@@ -258,7 +338,17 @@ AFRAME.registerComponent('depthkit-stream', {
     /**
      * Called on each scene tick.
      */
-    // tick: function (t) { },
+    tick: function (t) { 
+      if( this.player == null )return;
+
+      //console.log("playing " + this.player.video + " " + this.player.video.currentTime)
+
+      if (!this.player.video.isPlaying) {
+        this.player.video.play();    
+      }else{
+        //console.log("playing " + this.player.video)
+      }
+    },
   
     /**
      * Called when entity pauses.
@@ -274,7 +364,35 @@ AFRAME.registerComponent('depthkit-stream', {
 
     },
 
-    loadVideo: function() {
+    loadVideo: function(){
+      
+      this.player = new Depthkit();
+      this.streamer = new VideoStreamTexture(this.player.video);
+
+      this.player.load(metaJson, "",
+          dkCharacter => {
+              this.character = dkCharacter;
+              
+              this.streamer.startVideo(this.data.videoPath);
+
+              console.log("Depthkit Loaded");
+
+              //Position and rotation adjustments
+              //dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
+              // dkCharacter.rotation.y = Math.PI;
+              //dkCharacter.position.set( -0.25, 0.92, 0 );
+
+              // Depthkit video playback control
+              //this.player.video
+              
+              //Add the character to the scene
+              this.el.object3D.add(this.character);
+              this.el.emit("video-loaded", { projection: "depthkit3d"});
+
+          });
+    },
+
+    _loadVideo: function() {
       
         console.log("STREAMING videoPath:" + this.data.videoPath);        
       
@@ -299,18 +417,21 @@ AFRAME.registerComponent('depthkit-stream', {
                     derivatives: true
                 }
             },
+            side:DoubleSide,
             vertexShader: vertexShader,
             fragmentShader: fragmentShader,
-            transparent: true
+            transparent: true,
+            depthWrite:false
         });
 
 
-        let plane = new Mesh(
-            new PlaneBufferGeometry(4,4),
-            this.material
-        );
+        let geometry = new PlaneBufferGeometry(2, 2, 320, 240);
+        //let mat = new PointsMaterial();
+        //let geometry = new Point
 
-        plane.position.y = 3;
+         let plane = new Mesh(geometry, this.material);
+        //let plane = new Points(geometry, mat);//this.material);
+        plane.position.y = 1;
         this.el.object3D.add(plane);
     }
   });
