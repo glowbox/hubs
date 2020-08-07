@@ -316,10 +316,9 @@ AFRAME.registerComponent('depthkit-stream', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-      this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
-          this._loadVideo();
-      });
+      
       this.videoTexture = new VideoStreamTexture();
+      this._loadVideo();
     },
   
     /**
@@ -363,34 +362,6 @@ AFRAME.registerComponent('depthkit-stream', {
      */
     play: function () {
 
-    },
-
-    loadVideo: function(){
-      
-      this.player = new Depthkit();
-      this.streamer = new VideoStreamTexture(this.player.video);
-
-      this.player.load(metaJson, "",
-          dkCharacter => {
-              this.character = dkCharacter;
-              
-              this.streamer.startVideo(this.data.videoPath);
-
-              console.log("Depthkit Loaded");
-
-              //Position and rotation adjustments
-              //dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
-              // dkCharacter.rotation.y = Math.PI;
-              //dkCharacter.position.set( -0.25, 0.92, 0 );
-
-              // Depthkit video playback control
-              //this.player.video
-              
-              //Add the character to the scene
-              this.el.object3D.add(this.character);
-              this.el.emit("video-loaded", { projection: "depthkit3d"});
-
-          });
     },
 
     _loadVideo: function() {
