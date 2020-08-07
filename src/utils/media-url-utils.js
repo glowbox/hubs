@@ -17,10 +17,11 @@ const commonKnownContentTypes = {
   mp4: "video/mp4",
   mp3: "audio/mpeg",
   basis: "image/basis",
-  m3u8: "application/vnd.apple.mpegurl",
+  m3u8: "mux",
   mpd: "application/dash+xml",
   depthkit: "video/depthkit",
-  ply: "model/ply"
+  ply: "model/ply",
+  mux: "video/mux"
 };
 
 // thanks to https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding
@@ -127,9 +128,13 @@ export const getCustomGLTFParserURLResolver = gltfUrl => url => {
 const dataUrlRegex = /data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/;
 
 export const guessContentType = url => {
+
+  console.log("gues content " + url);
+
   if (!url) return;
   if (url.startsWith("hubs://") && url.endsWith("/video")) return "video/vnd.hubs-webrtc";
   if (url.startsWith("https://mozilla-hubs-3-assets.virtualvenue-internal.info/assets/depthkit/")) return "depthkit";
+  
   if (url.startsWith("data:")) {
     const matches = dataUrlRegex.exec(url);
     if (matches.length > 0) {
