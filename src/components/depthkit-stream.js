@@ -157,6 +157,7 @@ void main()
     gl_Position = projectionMatrix * modelViewMatrix * worldPos;
     vUv = uv;
     debug = vec3(1, 0.5, 0.0);
+    gl_PointSize = 1.5;
     //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
@@ -429,8 +430,8 @@ AFRAME.registerComponent('depthkit-stream', {
         //let mat = new PointsMaterial();
         //let geometry = new Point
 
-         let plane = new Mesh(geometry, this.material);
-        //let plane = new Points(geometry, mat);//this.material);
+        // let plane = new Mesh(geometry, this.material);
+        let plane = new Points(geometry, this.material);
         plane.position.y = 1;
         this.el.object3D.add(plane);
     }
