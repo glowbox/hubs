@@ -160,7 +160,7 @@ float depthForPoint(vec2 texturePoint)
 {
     vec4 depthsample = texture2D(map, texturePoint);
     vec3 linear = srgb_to_rgb( depthsample.rgb);
-    vec3 depthsamplehsv = rgb2hsv(depthsample.rgb);
+    vec3 depthsamplehsv = rgb2hsv(linear.rgb);
     return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
 }
 
