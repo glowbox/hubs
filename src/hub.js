@@ -1596,7 +1596,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const stream = document.createElement("a-entity");
       stream.setAttribute("depthkit-stream",{
-        videoPath: commandParts[1]
+        videoPath: commandParts[1],
+        renderMode: "points"
       });
 
       stream.setAttribute("body-helper",{

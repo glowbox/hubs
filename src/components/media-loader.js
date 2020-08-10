@@ -446,7 +446,8 @@ AFRAME.registerComponent("media-loader", {
         this.resetElement(this.el);
         const stream = document.createElement("a-entity");
         stream.setAttribute("depthkit-stream",{
-          videoPath: canonicalUrl
+          videoPath: canonicalUrl,
+          renderMode: "points"
         });
         
         stream.addEventListener(
