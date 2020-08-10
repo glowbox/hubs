@@ -443,23 +443,24 @@ AFRAME.registerComponent("media-loader", {
           });
 
       } else if( contentType.startsWith("mux")) {
-            this.resetElement(this.el);
-            this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
-    
-            this.el.addEventListener(
-              "video-loaded",
-              e => {
-                this.onMediaLoaded(e.detail.projection === "flat" ? SHAPE.BOX : null);            
-              },
-              { once: true }
-            );
-    
-            this.el.setAttribute(
-              "depthkit-stream",
-               {
-                videoPath: canonicalUrl           
-              });
+        this.resetElement(this.el);
+        const stream = document.createElement("a-entity");
+        stream.setAttribute("depthkit-stream",{
+          videoPath: canonicalUrl
+        });
+        
+        stream.addEventListener(
+          "video-loaded",
+          e => {
+            console.log("stream loaded");
+          });
 
+        stream.setAttribute("body-helper",{
+          type: "static", scaleAutoUpdate: false
+        });
+
+        this.el.sceneEl.appendChild(stream);
+ 
       }else if( contentType.startsWith("model/ply")) {
         this.resetElement(this.el);
 
