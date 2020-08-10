@@ -9,6 +9,7 @@ import {
     WebGLRenderer,
     TextureLoader,
     AdditiveBlending,
+    PlaneGeometry,
     PlaneBufferGeometry,
     MeshBasicMaterial,
     ShaderMaterial,
@@ -47,7 +48,7 @@ const metaJson = `{
 	"clipEpsilon" : 0.00162288
 }`;
 
-const fragmentShader = `
+const fragmentShaderPoints = `
 uniform sampler2D map;
 uniform float opacity;
 uniform float width;
@@ -106,7 +107,7 @@ void main() {
 }
 `;
 
-const vertexShader = `
+const vertexShaderPoints = `
 
 uniform sampler2D map;
 
@@ -138,7 +139,7 @@ void main()
 {
 
     float mindepth = 0.0;
-    float maxdepth = 1.0;
+    float maxdepth = 2.25;
 
     float verticalScale = 0.5;//480.0 / 720.0;
     float verticalOffset = 1.0 - verticalScale;
@@ -163,12 +164,65 @@ void main()
     vUv = uv;
     debug = vec3(1, 0.5, 0.0);
     
-    
-    gl_PointSize = 3.0;
+    gl_PointSize = 5.0;
     gl_PointSize *= ( scale / - mvPosition.z );
 
-    
     //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
+}
+`;
+
+const fragmentShaderCutout = `
+uniform sampler2D map;
+uniform float opacity;
+uniform float width;
+uniform float height;
+
+varying vec2 vUv;
+
+#define BRIGHTNESS_THRESHOLD_OFFSET 0.01
+#define FLOAT_EPS 0.00001
+
+const float _DepthSaturationThreshhold = 0.3; //a given pixel whose saturation is less than half will be culled (old default was .5)
+const float _DepthBrightnessThreshold = 0.4; //a given pixel whose brightness is less than half will be culled (old default was .9)
+
+vec3 rgb2hsv(vec3 c)
+{
+    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+    float d = q.x - min(q.w, q.y);
+    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + FLOAT_EPS)), d / (q.x + FLOAT_EPS), q.x);
+}
+
+void main() {
+
+    float verticalScale = 0.5;//480.0 / 720.0;
+    float verticalOffset = 1.0 - verticalScale;
+
+    vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
+    vec2 depthUv = colorUv - vec2(0.0, 0.5);
+
+    vec4 colorSample = texture2D(map, colorUv); 
+    vec4 depthSample = texture2D(map, depthUv); 
+
+    vec3 hsv = rgb2hsv(depthSample.rgb);
+    float depth = hsv.b;
+    float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
+
+    colorSample.a *= (alpha * opacity);
+
+    gl_FragColor = colorSample;
+}
+`;
+
+const vertexShaderCutout = `
+
+varying vec2 vUv;
+
+void main()
+{
+    vUv = uv;
+    gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
 
@@ -316,7 +370,8 @@ class VideoStreamTexture {
 AFRAME.registerComponent('depthkit-stream', {
 
     schema: {
-      videoPath : {type: 'string'}
+      videoPath : {type: 'string'},
+      renderMode: {type: 'string'}
     },
   
     player : null,
@@ -326,9 +381,10 @@ AFRAME.registerComponent('depthkit-stream', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-      
-      this.videoTexture = new VideoStreamTexture();
-      this._loadVideo();
+      //this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
+        this.videoTexture = new VideoStreamTexture();
+        this._loadVideo();
+      //});
     },
   
     /**
@@ -376,10 +432,12 @@ AFRAME.registerComponent('depthkit-stream', {
 
     _loadVideo: function() {
       
-        console.log("STREAMING videoPath:" + this.data.videoPath);        
-      
-        this.videoTexture.startVideo(this.data.videoPath);
+      console.log("STREAMING renderMode:" + this.data.renderMode + ", videoPath:" + this.data.videoPath);
+    
+      this.videoTexture.startVideo(this.data.videoPath);
 
+      if(this.data.renderMode == "points") {
+        console.log("STREAMING video in POINTS mode");        
         this.material = new ShaderMaterial({
             uniforms: {
                 "map": {
@@ -400,20 +458,53 @@ AFRAME.registerComponent('depthkit-stream', {
                 }
             },
             side:DoubleSide,
-            vertexShader: vertexShader,
-            fragmentShader: fragmentShader,
+            vertexShader: vertexShaderPoints,
+            fragmentShader: fragmentShaderPoints,
             transparent: true,
             depthWrite:false
         });
 
-
         let geometry = new PlaneBufferGeometry(2, 2, 320, 240);
-        //let mat = new PointsMaterial();
-        //let geometry = new Point
+        let points = new Points(geometry, this.material);
+        points.position.y = 1;
+        this.el.object3D.add(points);
 
-        // let plane = new Mesh(geometry, this.material);
-        let plane = new Points(geometry, this.material);
-        plane.position.y = 1;
-        this.el.object3D.add(plane);
+      } else {
+
+        // Default render mode will be "cutout"
+
+        this.material = new ShaderMaterial({
+          uniforms: {
+              "map": {
+                  type: "t",
+                  value: this.videoTexture.texture
+              },
+              "time": {
+                  type: "f",
+                  value: 0.0
+              },
+              "opacity": {
+                  type: "f",
+                  value: 1.0
+              },
+              extensions:
+              {
+                  derivatives: true
+              }
+          },
+          side:DoubleSide,
+          vertexShader: vertexShaderCutout,
+          fragmentShader: fragmentShaderCutout,
+          transparent: true
+      });
+
+      let geometry = new PlaneBufferGeometry(2, 2);
+      let plane = new Mesh(geometry, this.material);
+      plane.position.y = 1;
+      this.el.object3D.add(plane);
+
+      console.log("STREAMING video in PLANE mode");
+
+      }
     }
   });
