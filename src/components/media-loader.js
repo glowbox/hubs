@@ -172,7 +172,6 @@ AFRAME.registerComponent("media-loader", {
     this.el.removeAttribute("media-pager");
     this.el.removeAttribute("media-video");
     this.el.removeAttribute("media-pdf");
-    this.el.removeAttribute("depthkit-player");
     this.el.setAttribute("media-image", { src: "error" });
     this.clearLoadingTimeout();
   },
@@ -424,67 +423,7 @@ AFRAME.registerComponent("media-loader", {
         this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
       }
 
-      if( contentType.startsWith("depthkit")) {
-        this.resetElement(this.el);
-        this.el.setAttribute("floaty-object", { reduceAngularFloat: true, releaseGravity: -1 });
-
-        this.el.addEventListener(
-          "video-loaded",
-          e => {
-            this.onMediaLoaded(e.detail.projection === "flat" ? SHAPE.BOX : null);            
-          },
-          { once: true }
-        );
-
-        this.el.setAttribute(
-          "depthkit-player",
-           {
-            videoPath: canonicalUrl           
-          });
-
-      } else if( contentType.startsWith("mux")) {
-        this.resetElement(this.el);
-        const stream = document.createElement("a-entity");
-        stream.setAttribute("depthkit-stream",{
-          videoPath: canonicalUrl,
-          renderMode: "points"
-        });
-        
-        stream.addEventListener(
-          "video-loaded",
-          e => {
-            console.log("stream loaded");
-          });
-
-        stream.setAttribute("body-helper",{
-          type: "static", scaleAutoUpdate: false
-        });
-
-        this.el.sceneEl.appendChild(stream);
- 
-      }else if( contentType.startsWith("model/ply")) {
-        this.resetElement(this.el);
-
-          //ply models are large, in the background, we don't want them to be selectable, moveable like other media elements
-          //so instead of using the current element we create a new one at the root of the scene
-          const model = document.createElement("a-entity");
-          model.setAttribute("ply-model",{
-            plypath: canonicalUrl
-          });
-          model.addEventListener(
-            "model-loaded",
-            e => {
-              console.log("ply loaded");
-            });
-
-          model.setAttribute("body-helper",{
-            type: "static", scaleAutoUpdate: false
-          });
-    
-          this.el.sceneEl.appendChild(model);
-  
-
-      }else if (
+      if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
         contentType.startsWith("application/dash") ||

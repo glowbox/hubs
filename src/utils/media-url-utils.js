@@ -129,11 +129,8 @@ const dataUrlRegex = /data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,.*/;
 
 export const guessContentType = url => {
 
-  console.log("gues content " + url);
-
   if (!url) return;
   if (url.startsWith("hubs://") && url.endsWith("/video")) return "video/vnd.hubs-webrtc";
-  if (url.startsWith("https://mozilla-hubs-3-assets.virtualvenue-internal.info/assets/depthkit/")) return "depthkit";
   
   if (url.startsWith("data:")) {
     const matches = dataUrlRegex.exec(url);
