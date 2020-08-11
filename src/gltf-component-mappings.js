@@ -388,7 +388,13 @@ AFRAME.GLTFModelPlus.registerComponent("audio-settings", "audio-settings", (el, 
   el.sceneEl.systems["hubs-systems"].audioSettingsSystem.updateAudioSettings(componentData);
 });
 
-AFRAME.GLTFModelPlus.registerComponent("ply-model", "ply-model");
+AFRAME.GLTFModelPlus.registerComponent("ply-model", "ply-model", (el, _componentName, componentData) => {
+  console.log("Ply Model");
+  el.setAttribute("ply-model", {
+    texturepath: "",
+    plypath : componentData.src.trim()
+  });
+});
 
 AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el, _componentName, componentData) => {
   console.log("Depthkit");
@@ -402,5 +408,13 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit2d-player", "depthkit2d-player",
   console.log("Depthkit2D");
   el.setAttribute("depthkit2d-player", {
     videoPath : componentData.src.trim()
+  });  
+});
+
+AFRAME.GLTFModelPlus.registerComponent("depthkit-stream", "depthkit-stream", (el, _componentName, componentData) => {
+  console.log("Depthkit Stream");
+  el.setAttribute("depthkit-stream", {
+    videoPath : componentData.src.trim(),
+    renderMode: componentData.type.trim()
   });  
 });
