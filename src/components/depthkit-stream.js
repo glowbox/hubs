@@ -12,6 +12,9 @@ import {
     PlaneGeometry,
     PlaneBufferGeometry,
     MeshBasicMaterial,
+    LinearFilter,
+    NearestFilter,
+    RGBFormat,
     ShaderMaterial,
     VideoTexture,
     PointsMaterial,
@@ -49,11 +52,13 @@ const metaJson = `{
 }`;
 
 const fragmentShaderPoints = `
+
 uniform sampler2D map;
 uniform float opacity;
 uniform float width;
 uniform float height;
 
+varying vec4 ptColor;
 varying vec2 vUv;
 varying vec4 vPos;
 varying vec3 debug;
@@ -62,7 +67,7 @@ varying vec3 debug;
 #define FLOAT_EPS 0.00001
 
 const float _DepthSaturationThreshhold = 0.3; //a given pixel whose saturation is less than half will be culled (old default was .5)
-const float _DepthBrightnessThreshold = 0.3; //a given pixel whose brightness is less than half will be culled (old default was .9)
+const float _DepthBrightnessThreshold = 0.6; //a given pixel whose brightness is less than half will be culled (old default was .9)
 
 vec3 rgb2hsv(vec3 c)
 {
@@ -94,12 +99,16 @@ void main() {
     vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
     vec2 depthUv = colorUv - vec2(0.0, 0.5);
 
-    vec4 colorSample = texture2D(map, colorUv); 
+    vec4 colorSample = ptColor;// texture2D(map, colorUv); 
     vec4 depthSample = texture2D(map, depthUv); 
 
     vec3 hsv = rgb2hsv(depthSample.rgb);
     float depth = hsv.b;
     float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
+
+    if(alpha <= 0.0) {
+      discard;
+    }
 
     colorSample.a *= (alpha * opacity);
 
@@ -111,6 +120,7 @@ const vertexShaderPoints = `
 
 uniform sampler2D map;
 
+varying vec4 ptColor;
 varying vec2 vUv;
 varying vec3 debug;
 
@@ -166,7 +176,6 @@ float depthForPoint(vec2 texturePoint)
 
 void main()
 {
-
     float mindepth = 0.0;
     float maxdepth = 2.25;
 
@@ -175,7 +184,7 @@ void main()
 
     vec2 colorUv = uv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
     vec2 depthUv = colorUv - vec2(0.0, 0.5);
-    
+
     float depth = depthForPoint(depthUv);
 
     float z = depth * (maxdepth - mindepth) + mindepth;
@@ -188,6 +197,7 @@ void main()
     vec4 mvPosition = vec4( worldPos.xyz, 1.0 );
     mvPosition = modelViewMatrix * mvPosition;
 
+    ptColor = texture2D(map, colorUv);
 
     gl_Position = projectionMatrix * modelViewMatrix * worldPos;
     vUv = uv;
@@ -199,6 +209,8 @@ void main()
     //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
+
+
 
 const fragmentShaderCutout = `
 uniform sampler2D map;
@@ -265,7 +277,9 @@ class VideoStreamTexture {
         this.video = _videoElement ? _videoElement : this.createVideoEl();
         
         this.texture = new VideoTexture(this.video);
-        this.format = THREE.RGBFormat;
+        this.texture.minFilter = NearestFilter;
+        this.texture.magFilter = LinearFilter;
+        this.texture.format = RGBFormat;
         this.hls = null;
       }
     
@@ -490,8 +504,8 @@ AFRAME.registerComponent('depthkit-stream', {
             side:DoubleSide,
             vertexShader: vertexShaderPoints,
             fragmentShader: fragmentShaderPoints,
-            transparent: true,
-            depthWrite:false
+            transparent: true
+            //depthWrite:false
         });
 
         let geometry = new PlaneBufferGeometry(2, 2, 320, 240);
