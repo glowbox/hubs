@@ -1590,24 +1590,41 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       scene.appendChild(player);
-    }else if( body.startsWith("live:")){
+    } else if( body.startsWith("live:")) {
       const commandParts = body.split(/\s+/);
       console.log("live " + commandParts);
 
-      const stream = document.createElement("a-entity");
-      stream.setAttribute("depthkit-stream",{
-        videoPath: commandParts[1],
-        renderMode: "points"
-      });
+      if(commandParts.length > 2) {
+        
+        // if there is a third parameter, it is the ID of the a-frame element, so update the video source
+        // of an existing element instead of creating a new one.
+        
+        let element = document.getElementById(commandParts[2]);
 
-      stream.setAttribute("body-helper",{
-        type: "static", scaleAutoUpdate: false
-      });
+        // make sure the element exists, and has a depthkit-stream attached to it.
+        if((element != null) && element.hasOwnProperty("components") && element.components["depthkit-stream"] ) {
+          element.components["depthkit-stream"].setVideoUrl(commandParts[1]);
+        }
 
-      scene.appendChild(stream);
+      } else {
 
+        // No third parameter, instantiate a new depthkit-stream component.
 
-    }else if (body.startsWith("ply:")) {
+        const stream = document.createElement("a-entity");
+        stream.setAttribute("depthkit-stream",{
+          videoPath: commandParts[1],
+          renderMode: "points"
+        });
+
+        stream.setAttribute("body-helper",{
+          type: "static", scaleAutoUpdate: false
+        });
+
+        scene.appendChild(stream);
+
+      }
+
+    } else if (body.startsWith("ply:")) {
       //ply: http://location/ply.ply
       const commandParts = body.split(/\s+/);
       console.log("ply " + commandParts);
