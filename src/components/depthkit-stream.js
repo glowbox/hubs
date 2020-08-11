@@ -250,6 +250,10 @@ void main() {
     float depth = hsv.b;
     float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
 
+    if(alpha <= 0.0) {
+      discard;
+    }
+
     colorSample.a *= (alpha * opacity);
 
     gl_FragColor = colorSample;
@@ -330,6 +334,14 @@ class VideoStreamTexture {
     
       this.texture.dispose();
     }
+
+    setVideoUrl(videoUrl) {
+      if (this.hls) {
+        this.startVideo(videoUrl);
+        //this.hls.loadSource(videoUrl);
+        //this.hls.startLoad();
+      }
+    }
   
     startVideo(videoUrl) {
   
@@ -368,6 +380,7 @@ class VideoStreamTexture {
           this.hls.attachMedia(this.video);
   
           this.hls.on(HLS.Events.ERROR, (event, data) => {
+            console.log("ERROR", data )
             if (data.fatal) {
               switch (data.type) {
                 case HLS.ErrorTypes.NETWORK_ERROR:
@@ -474,6 +487,13 @@ AFRAME.registerComponent('depthkit-stream', {
 
     },
 
+    setVideoUrl(videoUrl) {
+      if (this.videoTexture) {
+        // console.log("depthkit-stream, setting video url: " + videoUrl);
+        this.videoTexture.setVideoUrl(videoUrl);
+      }      
+    },
+
     _loadVideo: function() {
       
       console.log("STREAMING renderMode:" + this.data.renderMode + ", videoPath:" + this.data.videoPath);
@@ -505,7 +525,7 @@ AFRAME.registerComponent('depthkit-stream', {
             vertexShader: vertexShaderPoints,
             fragmentShader: fragmentShaderPoints,
             transparent: true
-            //depthWrite:false
+            //depthWrite:falses
         });
 
         let geometry = new PlaneBufferGeometry(2, 2, 320, 240);
