@@ -1575,14 +1575,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const incomingMessage = { name, type, body, maySpawn, sessionId: session_id };
 
     if (body.startsWith("dk:"))  {
-      //dk: http://location/video.mp4 http://location/meta.txt
+      //dk: http://location/video.mp4
       const commandParts = body.split(/\s+/);
-      console.log("depthkit " + commandParts[1] + " " + commandParts[2]);
+      console.log("depthkit " + commandParts[1]);
 
       const player = document.createElement("a-entity");
       player.setAttribute("depthkit-player",{
         videoPath: commandParts[1],
-        metaPath: commandParts[2]
+        metaPath:""
       });
 
       player.setAttribute("body-helper",{
@@ -1632,7 +1632,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const model = document.createElement("a-entity");
       model.setAttribute("ply-model",{
         plypath: commandParts[1],
-        texturepath: commandParts[2]
+        texturepath: ""
       });
 
       model.setAttribute("body-helper",{

@@ -66,15 +66,7 @@ AFRAME.registerComponent('depthkit-player', {
      * Called on each scene tick.
      */
     tick: function (t) { 
-      if( this.player == null )return;
-
-      //console.log("playing " + this.player.video + " " + this.player.video.currentTime)
-
-      if (!this.player.video.isPlaying) {
-        this.player.video.play();    
-      }else{
-        //console.log("playing " + this.player.video)
-      }
+      
     }
     ,
   
@@ -117,7 +109,7 @@ AFRAME.registerComponent('depthkit-player', {
                 //Position and rotation adjustments
                 //dkCharacter.rotation.set( Math.PI - 0.25, 0, Math.PI / -2.0 );
                 // dkCharacter.rotation.y = Math.PI;
-                //dkCharacter.position.set( -0.25, 0.92, 0 );
+                this.character.position.set( 0, 1.0, 0 );
 
                 // Depthkit video playback control
                 //this.player.video.muted = "muted"; // Necessary for auto-play in chrome now
