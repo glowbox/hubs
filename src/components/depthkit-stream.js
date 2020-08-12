@@ -1,7 +1,7 @@
 /**
  * Loads a depthkit capture\
-* @namespace depthkit2d-player
- * @component depthkit2d-player
+* @namespace depthkit-stream
+ * @component depthkit-stream
  */
 import {
     Scene,
@@ -350,7 +350,7 @@ class VideoStreamTexture {
         const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
         const baseUrl = videoUrl.startsWith(corsProxyPrefix) ? videoUrl.substring(corsProxyPrefix.length) : videoUrl;
         
-        // console.log("HLS is supported, video URL:" + baseUrl);
+        console.log("HLS is supported, video URL:" + videoUrl + " " +  baseUrl);
 
         const setupHls = () => {
           if (this.hls) {
@@ -399,6 +399,12 @@ class VideoStreamTexture {
         };
   
         setupHls();
+
+        this.video.play().then(function () {
+          console.log("playing" );
+        }).catch(function (error) {
+          console.log("error autoplay" );
+        });
   
         // Sometimes for weird streams HLS fails to initialize.
         /*const setupInterval = setInterval(() => {
@@ -416,10 +422,15 @@ class VideoStreamTexture {
       } else if (this.video.canPlayType(contentType)) {
         this.video.src = videoUrl;
         this.video.onerror = failLoad;
+
+        this.video.play().then(function () {
+          console.log("playing", data );
+        }).catch(function (error) {
+          console.log("error autoplay", data );
+        });
       } else {
         failLoad("HLS unsupported");
-      }
-    
+      }    
     }
 }
 
@@ -431,9 +442,6 @@ AFRAME.registerComponent('depthkit-stream', {
       renderMode: {type: 'string'}
     },
   
-    player : null,
-    character : null,
-
     /**
      * Called once when component is attached. Generally for initial setup.
      */
@@ -462,16 +470,8 @@ AFRAME.registerComponent('depthkit-stream', {
      * Called on each scene tick.
      */
     tick: function (t) { 
-      if( this.player == null )return;
 
-      //console.log("playing " + this.player.video + " " + this.player.video.currentTime)
-
-      if (!this.player.video.isPlaying) {
-        this.player.video.play();    
-      }else{
-        //console.log("playing " + this.player.video)
-      }
-    },
+       },
   
     /**
      * Called when entity pauses.
