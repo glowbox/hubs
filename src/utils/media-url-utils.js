@@ -21,7 +21,9 @@ const commonKnownContentTypes = {
   mpd: "application/dash+xml",
   depthkit: "video/depthkit",
   ply: "model/ply",
-  mux: "video/mux"
+  mux: "video/mux",
+  mtl: "model/obj",
+  obj: "model/obj"
 };
 
 // thanks to https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding

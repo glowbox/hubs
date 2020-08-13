@@ -39,7 +39,7 @@ import { authorizeOrSanitizeMessage } from "./utils/permissions-utils";
 import Cookies from "js-cookie";
 import "./naf-dialog-adapter";
 
-import "./components/ply-model";
+import "./components/point-model";
 
 import "./components/depthkit-player";
 
@@ -1630,8 +1630,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.log("ply " + commandParts);
 
       const model = document.createElement("a-entity");
-      model.setAttribute("ply-model",{
-        plypath: commandParts[1],
+      model.setAttribute("point-model",{
+        modelpath: commandParts[1],
         texturepath: ""
       });
 

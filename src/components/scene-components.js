@@ -29,4 +29,4 @@ import "./video-pause-state";
 import "./particle-emitter";
 import "./depthkit-player";
 import "./depthkit2d-player";
-import "./ply-model"
+import "./point-model"

@@ -388,18 +388,31 @@ AFRAME.GLTFModelPlus.registerComponent("audio-settings", "audio-settings", (el, 
   el.sceneEl.systems["hubs-systems"].audioSettingsSystem.updateAudioSettings(componentData);
 });
 
-AFRAME.GLTFModelPlus.registerComponent("ply-model", "ply-model", (el, _componentName, componentData) => {
+AFRAME.GLTFModelPlus.registerComponent("point-model", "point-model", (el, _componentName, componentData) => {
   console.log("Ply Model");
-  el.setAttribute("id", componentData.id.trim());
-  el.setAttribute("ply-model", {
+  if( componentData.hasOwnProperty('id')){
+    el.setAttribute("id", componentData.id.trim());
+  }
+  
+  el.setAttribute("point-model", {
     texturepath: "",
-    plypath : componentData.src.trim()
+    modelpath : componentData.src.trim(),
+    size:  componentData.size,
+    alphaTest: componentData.alphaTest,
+    opacity: componentData.opacity,
+    transparent: componentData.transparent,
+    blending: componentData.blending,
+    sizeAttenuation: componentData.sizeAttenuation,
+
   });
 });
 
 AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el, _componentName, componentData) => {
   console.log("Depthkit");
-  el.setAttribute("id", componentData.id.trim());
+
+  if( componentData.hasOwnProperty('id')){
+    el.setAttribute("id", componentData.id.trim());
+  }
   el.setAttribute("depthkit-player", {
     metaPath: "",
     videoPath : componentData.src.trim()
@@ -408,7 +421,9 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el
 
 AFRAME.GLTFModelPlus.registerComponent("depthkit2d-player", "depthkit2d-player", (el, _componentName, componentData) => {
   console.log("Depthkit2D");
-  el.setAttribute("id", componentData.id.trim());
+  if( componentData.hasOwnProperty('id')){
+    el.setAttribute("id", componentData.id.trim());
+  }
   el.setAttribute("depthkit2d-player", {
     videoPath : componentData.src.trim()
   });  
@@ -416,7 +431,9 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit2d-player", "depthkit2d-player",
 
 AFRAME.GLTFModelPlus.registerComponent("depthkit-stream", "depthkit-stream", (el, _componentName, componentData) => {
   console.log("Depthkit Stream");
-  el.setAttribute("id", componentData.id.trim());
+  if( componentData.hasOwnProperty('id')){
+    el.setAttribute("id", componentData.id.trim());
+  }
   el.setAttribute("depthkit-stream", {
     videoPath : componentData.src.trim(),
     renderMode: componentData.mode.trim()
