@@ -203,7 +203,7 @@ void main()
     vUv = uv;
     debug = vec3(1, 0.5, 0.0);
     
-    gl_PointSize = 5.0;
+    gl_PointSize = 8.0;
     gl_PointSize *= ( scale / - mvPosition.z );
 
     //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
@@ -349,9 +349,7 @@ class VideoStreamTexture {
           
         const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
         const baseUrl = videoUrl.startsWith(corsProxyPrefix) ? videoUrl.substring(corsProxyPrefix.length) : videoUrl;
-        
-        console.log("HLS is supported, video URL:" + videoUrl + " " +  baseUrl);
-
+       
         const setupHls = () => {
           if (this.hls) {
             this.hls.stopLoad();
@@ -391,20 +389,24 @@ class VideoStreamTexture {
                     this.hls.recoverMediaError();
                   break;
                 default:
-                  failLoad(event);
+                  console.log("ERROR", data )
                   return;
               }
             }
+          });
+
+          this.hls.on(HLS.Events.MANIFEST_PARSED, (event, data) => {
+            this.video.play().then(function () {
+              console.log("playing" );
+            }).catch(function (error) {
+              console.log("error autoplay" );
+            });
+
           });
         };
   
         setupHls();
 
-        this.video.play().then(function () {
-          console.log("playing" );
-        }).catch(function (error) {
-          console.log("error autoplay" );
-        });
   
         // Sometimes for weird streams HLS fails to initialize.
         /*const setupInterval = setInterval(() => {
@@ -429,7 +431,7 @@ class VideoStreamTexture {
           console.log("error autoplay", data );
         });
       } else {
-        failLoad("HLS unsupported");
+        console.log("HLS unsupported" );
       }    
     }
 }
@@ -446,10 +448,8 @@ AFRAME.registerComponent('depthkit-stream', {
      * Called once when component is attached. Generally for initial setup.
      */
     init: function () {
-      //this.el.sceneEl.addEventListener("environment-scene-loaded", () => {
         this.videoTexture = new VideoStreamTexture();
         this._loadVideo();
-      //});
     },
   
     /**
