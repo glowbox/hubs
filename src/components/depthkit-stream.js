@@ -293,14 +293,15 @@ class VideoStreamTexture {
   
     createVideoEl() {
       const el = document.createElement("video");
-      
+      el.setAttribute("id", "depthkit-stream-video");
+
       el.setAttribute("playsinline", "");
       el.setAttribute("webkit-playsinline", "");
       // iOS Safari requires the autoplay attribute, or it won't play the video at all.
       el.autoplay = true;
       // iOS Safari will not play videos without user interaction. We mute the video so that it can autoplay and then
       // allow the user to unmute it with an interaction in the unmute-video-button component.
-      el.muted = true;
+      el.muted = false;
       el.preload = "auto";
       el.crossOrigin = "anonymous";
   
@@ -449,6 +450,30 @@ AFRAME.registerComponent('depthkit-stream', {
      */
     init: function () {
         this.videoTexture = new VideoStreamTexture();
+
+        //we need to have a "play/unmute" button for browsers that have strict autoplay settings
+        var entity = document.createElement('a-entity');
+        //see hubs.html templage
+        entity.appendChild(document.getElementById("depthkit-unmute").content);
+        entity.object3D.position.set(0, 1, 1);
+        entity.object3D.rotation.set(0, 180, 0);
+        this.el.appendChild(entity);
+
+        //keep a ref to the video element so we can control it once we are loaded
+        const videoref = this.videoTexture.video;
+        entity.addEventListener('loaded', function() {
+          this.onClick = function(){
+
+            //TODO only show if / when video is not playing, maybe delay checking for 1 seconds
+            console.log("play/unmute clicked");
+            videoref.play();
+            videoref.muted = false;
+
+          }
+          var btn = entity.querySelector(".unmute-ui");
+          btn.object3D.addEventListener("interact", this.onClick);
+        });
+        
         this._loadVideo();
     },
   

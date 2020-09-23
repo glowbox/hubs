@@ -921,6 +921,17 @@
                 </a-entity>
             </template>
 
+            <template id="depthkit-unmute">
+                <a-entity
+                    class="ui interactable-ui unmute-ui"
+                    tags="singleActionButton:true;" 
+                    mixin="rounded-text-button" 
+                    slice9="width: 0.8" 
+                    is-remote-hover-target>
+                        <a-entity text="value:play & unmute; width:2; align:center;" text-raycast-hack position="0 0 0.02"></a-entity>                
+                </a-entity>
+            </template>
+
             <a-mixin id="rounded-text-button"
                 slice9="
                     width: 0.45;
@@ -1246,13 +1257,15 @@
         <a-entity id="objects-root">
             <a-entity id="objects-scene">
 
-				<!-- 
-					<a-entity
+		
+                <!--		 
+                    <a-entity
+                        id="depth-stream"
 						body-helper="type: static; scaleAutoUpdate: false"
-						depthkit-stream="videoPath:http://localhost:8090/live/zcam_test/index.m3u8">
+                        depthkit-stream="videoPath: renderMode:points">
+                        
 					</a-entity>
 	   
-                
                     <a-entity
                         body-helper="type: static; scaleAutoUpdate: false"
                         point-model="">
