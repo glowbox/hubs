@@ -120,6 +120,10 @@ const vertexShaderPoints = `
 
 uniform sampler2D map;
 
+uniform float pointSize;
+uniform float depthMin;
+uniform float depthMax;
+
 varying vec4 ptColor;
 varying vec2 vUv;
 varying vec3 debug;
@@ -176,8 +180,8 @@ float depthForPoint(vec2 texturePoint)
 
 void main()
 {
-    float mindepth = 0.0;
-    float maxdepth = 2.25;
+    float mindepth = depthMin;
+    float maxdepth = depthMax;
 
     float verticalScale = 0.5;//480.0 / 720.0;
     float verticalOffset = 1.0 - verticalScale;
@@ -203,7 +207,7 @@ void main()
     vUv = uv;
     debug = vec3(1, 0.5, 0.0);
     
-    gl_PointSize = 8.0;
+    gl_PointSize = pointSize;
     gl_PointSize *= ( scale / - mvPosition.z );
 
     //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
@@ -217,6 +221,8 @@ uniform sampler2D map;
 uniform float opacity;
 uniform float width;
 uniform float height;
+
+
 
 varying vec2 vUv;
 
@@ -442,7 +448,10 @@ AFRAME.registerComponent('depthkit-stream', {
 
     schema: {
       videoPath : {type: 'string'},
-      renderMode: {type: 'string'}
+      renderMode: {type: 'string'},
+      depthMin:   {type: 'number', default: 0},
+      depthMax:   {type: 'number', default: 2.5},
+      pointSize:  {type: 'number', default: 8}
     },
   
     /**
@@ -519,6 +528,14 @@ AFRAME.registerComponent('depthkit-stream', {
       }      
     },
 
+    getDataValue(key, defaultValue) {
+      if(this.data.hasOwnProperty(key)) {
+        return this.data[key];
+      } else {
+        return defaultValue;
+      }
+    },
+
     _loadVideo: function() {
       
       console.log("STREAMING renderMode:" + this.data.renderMode + ", videoPath:" + this.data.videoPath);
@@ -540,6 +557,18 @@ AFRAME.registerComponent('depthkit-stream', {
                 "opacity": {
                     type: "f",
                     value: 1.0
+                },
+                "pointSize" :{
+                  type: "f",
+                  value: this.getDataValue("pointSize", 8)
+                },
+                "depthMin" :{
+                  type: "f",
+                  value: this.getDataValue("depthMin", 0)
+                },
+                "depthMax" :{
+                  type: "f",
+                  value: this.getDataValue("depthMax", 2.5)
                 },
                 extensions:
                 {
