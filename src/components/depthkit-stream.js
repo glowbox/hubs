@@ -4,26 +4,26 @@
  * @component depthkit-stream
  */
 import {
-    Scene,
-    PerspectiveCamera,
-    WebGLRenderer,
-    TextureLoader,
-    AdditiveBlending,
-    PlaneGeometry,
-    PlaneBufferGeometry,
-    MeshBasicMaterial,
-    LinearFilter,
-    NearestFilter,
-    RGBFormat,
-    ShaderMaterial,
-    VideoTexture,
-    PointsMaterial,
-    Points,
-    Vector3,
-    CatmullRomCurve3,
-    Object3D,
-    DoubleSide
-  } from 'three'
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  TextureLoader,
+  AdditiveBlending,
+  PlaneGeometry,
+  PlaneBufferGeometry,
+  MeshBasicMaterial,
+  LinearFilter,
+  NearestFilter,
+  RGBFormat,
+  ShaderMaterial,
+  VideoTexture,
+  PointsMaterial,
+  Points,
+  Vector3,
+  CatmullRomCurve3,
+  Object3D,
+  DoubleSide
+} from 'three'
 
 import HLS from "hls.js";
 import configs from "../utils/configs";
@@ -31,24 +31,24 @@ import { proxiedUrlFor } from "../utils/media-url-utils";
 import { Mesh } from 'three';
 
 const metaJson = `{
-	"_versionMajor" : "0",
-	"_versionMinor" : "1",
-	"depthFocalLength" : {
-		"x" : 320,
-		"y" : 240
-	},
-	"depthImageSize" : {
-		"x" : 640,
-		"y" : 480
-	},
-	"depthPrincipalPoint" : {
-		"x" : 0.0,
-		"y" : 0.0
-	},
-	"farClip" : 1.0,
-	"format" : "perpixel",
-	"nearClip": 0.01,
-	"clipEpsilon" : 0.00162288
+"_versionMajor" : "0",
+"_versionMinor" : "1",
+"depthFocalLength" : {
+  "x" : 320,
+  "y" : 240
+},
+"depthImageSize" : {
+  "x" : 640,
+  "y" : 480
+},
+"depthPrincipalPoint" : {
+  "x" : 0.0,
+  "y" : 0.0
+},
+"farClip" : 1.0,
+"format" : "perpixel",
+"nearClip": 0.01,
+"clipEpsilon" : 0.00162288
 }`;
 
 const fragmentShaderPoints = `
@@ -71,48 +71,48 @@ const float _DepthBrightnessThreshold = 0.6; //a given pixel whose brightness is
 
 vec3 rgb2hsv(vec3 c)
 {
-    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-    float d = q.x - min(q.w, q.y);
-    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + FLOAT_EPS)), d / (q.x + FLOAT_EPS), q.x);
+  vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+  vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+  float d = q.x - min(q.w, q.y);
+  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + FLOAT_EPS)), d / (q.x + FLOAT_EPS), q.x);
 }
 
 float depthForPoint(vec2 texturePoint)
 {
-    vec4 depthsample = texture2D(map, texturePoint);
-    vec3 depthsamplehsv = rgb2hsv(depthsample.rgb);
-    return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
+  vec4 depthsample = texture2D(map, texturePoint);
+  vec3 depthsamplehsv = rgb2hsv(depthsample.rgb);
+  return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
 }
 
 void main() {
 
-  /*float verticalScale = 480.0 / 720.0;
+/*float verticalScale = 480.0 / 720.0;
+float verticalOffset = 1.0 - verticalScale;
+vec2 colorUv = vUv * vec2(0.5, verticalScale) + vec2(0, verticalOffset);
+vec2 depthUv = colorUv + vec2(0.5, 0.0);*/
+
+
+  float verticalScale = 0.5;//480.0 / 720.0;
   float verticalOffset = 1.0 - verticalScale;
-  vec2 colorUv = vUv * vec2(0.5, verticalScale) + vec2(0, verticalOffset);
-  vec2 depthUv = colorUv + vec2(0.5, 0.0);*/
 
+  vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
+  vec2 depthUv = colorUv - vec2(0.0, 0.5);
 
-    float verticalScale = 0.5;//480.0 / 720.0;
-    float verticalOffset = 1.0 - verticalScale;
+  vec4 colorSample = ptColor;// texture2D(map, colorUv); 
+  vec4 depthSample = texture2D(map, depthUv); 
 
-    vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
-    vec2 depthUv = colorUv - vec2(0.0, 0.5);
+  vec3 hsv = rgb2hsv(depthSample.rgb);
+  float depth = hsv.b;
+  float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
 
-    vec4 colorSample = ptColor;// texture2D(map, colorUv); 
-    vec4 depthSample = texture2D(map, depthUv); 
+  if(alpha <= 0.0) {
+    discard;
+  }
 
-    vec3 hsv = rgb2hsv(depthSample.rgb);
-    float depth = hsv.b;
-    float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
+  colorSample.a *= (alpha * opacity);
 
-    if(alpha <= 0.0) {
-      discard;
-    }
-
-    colorSample.a *= (alpha * opacity);
-
-    gl_FragColor = colorSample;//vec4(debug, 1);
+  gl_FragColor = colorSample;//vec4(debug, 1);
 }
 `;
 
@@ -139,78 +139,78 @@ const float SRGB_ALPHA = 0.055;
 
 // Converts a single srgb channel to rgb
 float srgb_to_linear(float channel) {
-    if (channel <= 0.04045)
-        return channel / 12.92;
-    else
-        return pow((channel + SRGB_ALPHA) / (1.0 + SRGB_ALPHA), 2.4);
+  if (channel <= 0.04045)
+      return channel / 12.92;
+  else
+      return pow((channel + SRGB_ALPHA) / (1.0 + SRGB_ALPHA), 2.4);
 }
 
 // Converts a srgb color to a linear rgb color (exact, not approximated)
 vec3 srgb_to_rgb(vec3 srgb) {
-    return vec3(
-        srgb_to_linear(srgb.r),
-        srgb_to_linear(srgb.g),
-        srgb_to_linear(srgb.b)
-    );
+  return vec3(
+      srgb_to_linear(srgb.r),
+      srgb_to_linear(srgb.g),
+      srgb_to_linear(srgb.b)
+  );
 }
 
 //faster but noisier
 vec3 srgb_to_rgb_approx(vec3 srgb) {
-  return pow(srgb, vec3(SRGB_INVERSE_GAMMA));
+return pow(srgb, vec3(SRGB_INVERSE_GAMMA));
 }
 
 vec3 rgb2hsv(vec3 c)
 {
-    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+  vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+  vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
 
-    float d = q.x - min(q.w, q.y);
-    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + _Epsilon)), d / (q.x + _Epsilon), q.x);
+  float d = q.x - min(q.w, q.y);
+  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + _Epsilon)), d / (q.x + _Epsilon), q.x);
 }
 
 
 float depthForPoint(vec2 texturePoint)
 {
-    vec4 depthsample = texture2D(map, texturePoint);
-    vec3 linear = srgb_to_rgb( depthsample.rgb);
-    vec3 depthsamplehsv = rgb2hsv(linear.rgb);
-    return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
+  vec4 depthsample = texture2D(map, texturePoint);
+  vec3 linear = srgb_to_rgb( depthsample.rgb);
+  vec3 depthsamplehsv = rgb2hsv(linear.rgb);
+  return depthsamplehsv.g > _DepthSaturationThreshhold && depthsamplehsv.b > _DepthBrightnessThreshold ? depthsamplehsv.r : 0.0;
 }
 
 void main()
 {
-    float mindepth = depthMin;
-    float maxdepth = depthMax;
+  float mindepth = depthMin;
+  float maxdepth = depthMax;
 
-    float verticalScale = 0.5;//480.0 / 720.0;
-    float verticalOffset = 1.0 - verticalScale;
+  float verticalScale = 0.5;//480.0 / 720.0;
+  float verticalOffset = 1.0 - verticalScale;
 
-    vec2 colorUv = uv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
-    vec2 depthUv = colorUv - vec2(0.0, 0.5);
+  vec2 colorUv = uv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
+  vec2 depthUv = colorUv - vec2(0.0, 0.5);
 
-    float depth = depthForPoint(depthUv);
+  float depth = depthForPoint(depthUv);
 
-    float z = depth * (maxdepth - mindepth) + mindepth;
-    
-    vec4 worldPos = vec4(position.xy, -z, 1.0);
-    worldPos.w = 1.0;
+  float z = depth * (maxdepth - mindepth) + mindepth;
+  
+  vec4 worldPos = vec4(position.xy, -z, 1.0);
+  worldPos.w = 1.0;
 
-    
-    float scale = 1.0;
-    vec4 mvPosition = vec4( worldPos.xyz, 1.0 );
-    mvPosition = modelViewMatrix * mvPosition;
+  
+  float scale = 1.0;
+  vec4 mvPosition = vec4( worldPos.xyz, 1.0 );
+  mvPosition = modelViewMatrix * mvPosition;
 
-    ptColor = texture2D(map, colorUv);
+  ptColor = texture2D(map, colorUv);
 
-    gl_Position = projectionMatrix * modelViewMatrix * worldPos;
-    vUv = uv;
-    debug = vec3(1, 0.5, 0.0);
-    
-    gl_PointSize = pointSize;
-    gl_PointSize *= ( scale / - mvPosition.z );
+  gl_Position = projectionMatrix * modelViewMatrix * worldPos;
+  vUv = uv;
+  debug = vec3(1, 0.5, 0.0);
+  
+  gl_PointSize = pointSize;
+  gl_PointSize *= ( scale / - mvPosition.z );
 
-    //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
+  //gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
 
@@ -234,35 +234,35 @@ const float _DepthBrightnessThreshold = 0.4; //a given pixel whose brightness is
 
 vec3 rgb2hsv(vec3 c)
 {
-    vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-    vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
-    float d = q.x - min(q.w, q.y);
-    return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + FLOAT_EPS)), d / (q.x + FLOAT_EPS), q.x);
+  vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+  vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+  float d = q.x - min(q.w, q.y);
+  return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + FLOAT_EPS)), d / (q.x + FLOAT_EPS), q.x);
 }
 
 void main() {
 
-    float verticalScale = 0.5;//480.0 / 720.0;
-    float verticalOffset = 1.0 - verticalScale;
+  float verticalScale = 0.5;//480.0 / 720.0;
+  float verticalOffset = 1.0 - verticalScale;
 
-    vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
-    vec2 depthUv = colorUv - vec2(0.0, 0.5);
+  vec2 colorUv = vUv * vec2(1.0, verticalScale) + vec2(0.0, 0.5);
+  vec2 depthUv = colorUv - vec2(0.0, 0.5);
 
-    vec4 colorSample = texture2D(map, colorUv); 
-    vec4 depthSample = texture2D(map, depthUv); 
+  vec4 colorSample = texture2D(map, colorUv); 
+  vec4 depthSample = texture2D(map, depthUv); 
 
-    vec3 hsv = rgb2hsv(depthSample.rgb);
-    float depth = hsv.b;
-    float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
+  vec3 hsv = rgb2hsv(depthSample.rgb);
+  float depth = hsv.b;
+  float alpha = depth > _DepthBrightnessThreshold + BRIGHTNESS_THRESHOLD_OFFSET ? 1.0 : 0.0;
 
-    if(alpha <= 0.0) {
-      discard;
-    }
+  if(alpha <= 0.0) {
+    discard;
+  }
 
-    colorSample.a *= (alpha * opacity);
+  colorSample.a *= (alpha * opacity);
 
-    gl_FragColor = colorSample;
+  gl_FragColor = colorSample;
 }
 `;
 
@@ -272,8 +272,8 @@ varying vec2 vUv;
 
 void main()
 {
-    vUv = uv;
-    gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
+  vUv = uv;
+  gl_Position =  projectionMatrix * modelViewMatrix * vec4(position,1.0);
 }
 `;
 
@@ -283,315 +283,306 @@ const HLS_TIMEOUT = 2500;
 
 class VideoStreamTexture {
 
-    constructor(_videoElement) {
-        this.video = _videoElement ? _videoElement : this.createVideoEl();
+  constructor(_videoElement) {
+      this.video = _videoElement ? _videoElement : this.createVideoEl();
+      
+      this.texture = new VideoTexture(this.video);
+      this.texture.minFilter = NearestFilter;
+      this.texture.magFilter = LinearFilter;
+      this.texture.format = RGBFormat;
+      this.hls = null;
+
+      this.loadTime = 0;
+    }
+
+    get LoadTime() {      
+      return this.loadTime;
+    }
+   
+    update() {
+    }
+  
+  createVideoEl() {
+    const el = document.createElement("video");
+    el.setAttribute("id", "depthkit-stream-video");
+
+    el.setAttribute("playsinline", "");
+    el.setAttribute("webkit-playsinline", "");
+    // iOS Safari requires the autoplay attribute, or it won't play the video at all.
+    el.autoplay = true;
+    // iOS Safari will not play videos without user interaction. We mute the video so that it can autoplay and then
+    // allow the user to unmute it with an interaction in the unmute-video-button component.
+    el.muted = false;
+    el.preload = "auto";
+    el.crossOrigin = "anonymous";
+
+    console.log("VideoStreamTexture: Video element created", el);
+  
+    return el;
+  }
+  
+   scaleToAspectRatio(el, ratio) {
+    const width = Math.min(1.0, 1.0 / ratio);
+    const height = Math.min(1.0, ratio);
+    el.object3DMap.mesh.scale.set(width, height, 1);
+    el.object3DMap.mesh.matrixNeedsUpdate = true;
+  }
+  
+
+  dispose() {
+    if (this.texture.image instanceof HTMLVideoElement) {
+      const video = this.texture.image;
+      video.pause();
+      video.src = "";
+      video.load();
+    }
+  
+    if (this.hls) {
+      this.hls.stopLoad();
+      this.hls.detachMedia();
+      this.hls.destroy();
+      this.hls = null;
+    }
+  
+    this.texture.dispose();
+  }
+
+  setVideoUrl(videoUrl) {
+    if (this.hls) {
+      this.startVideo(videoUrl);
+      //this.hls.loadSource(videoUrl);
+      //this.hls.startLoad();
+    }
+  }
+
+  startVideo(videoUrl) {
+
+    if (HLS.isSupported()) {
         
-        this.texture = new VideoTexture(this.video);
-        this.texture.minFilter = NearestFilter;
-        this.texture.magFilter = LinearFilter;
-        this.texture.format = RGBFormat;
-        this.hls = null;
-      }
-    
-      update() {
-      }
-    
-  
-    createVideoEl() {
-      const el = document.createElement("video");
-      el.setAttribute("id", "depthkit-stream-video");
+      const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
+      const baseUrl = videoUrl.startsWith(corsProxyPrefix) ? videoUrl.substring(corsProxyPrefix.length) : videoUrl;
+     
+      const setupHls = () => {
+        if (this.hls) {
+          this.hls.stopLoad();
+          this.hls.detachMedia();
+          this.hls.destroy();
+          this.hls = null;
+        }
 
-      el.setAttribute("playsinline", "");
-      el.setAttribute("webkit-playsinline", "");
-      // iOS Safari requires the autoplay attribute, or it won't play the video at all.
-      el.autoplay = true;
-      // iOS Safari will not play videos without user interaction. We mute the video so that it can autoplay and then
-      // allow the user to unmute it with an interaction in the unmute-video-button component.
-      el.muted = false;
-      el.preload = "auto";
-      el.crossOrigin = "anonymous";
-  
-      console.log("VideoStreamTexture: Video element created", el);
-    
-      return el;
-    }
-    
-     scaleToAspectRatio(el, ratio) {
-      const width = Math.min(1.0, 1.0 / ratio);
-      const height = Math.min(1.0, ratio);
-      el.object3DMap.mesh.scale.set(width, height, 1);
-      el.object3DMap.mesh.matrixNeedsUpdate = true;
-    }
-    
-  
-    dispose() {
-      if (this.texture.image instanceof HTMLVideoElement) {
-        const video = this.texture.image;
-        video.pause();
-        video.src = "";
-        video.load();
-      }
-    
-      if (this.hls) {
-        this.hls.stopLoad();
-        this.hls.detachMedia();
-        this.hls.destroy();
-        this.hls = null;
-      }
-    
-      this.texture.dispose();
-    }
-
-    setVideoUrl(videoUrl) {
-      if (this.hls) {
-        this.startVideo(videoUrl);
-        //this.hls.loadSource(videoUrl);
-        //this.hls.startLoad();
-      }
-    }
-  
-    startVideo(videoUrl) {
-  
-      if (HLS.isSupported()) {
-          
-        const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
-        const baseUrl = videoUrl.startsWith(corsProxyPrefix) ? videoUrl.substring(corsProxyPrefix.length) : videoUrl;
-       
-        const setupHls = () => {
-          if (this.hls) {
-            this.hls.stopLoad();
-            this.hls.detachMedia();
-            this.hls.destroy();
-            this.hls = null;
-          }
-  
-          this.hls = new HLS({
-            xhrSetup: (xhr, u) => {
-              if (u.startsWith(corsProxyPrefix)) {
-                u = u.substring(corsProxyPrefix.length);
-              }
-  
-              // HACK HLS.js resolves relative urls internally, but our CORS proxying screws it up. Resolve relative to the original unproxied url.
-              // TODO extend HLS.js to allow overriding of its internal resolving instead
-              if (!u.startsWith("http")) {
-                u = buildAbsoluteURL(baseUrl, u.startsWith("/") ? u : `/${u}`);
-              }
-  
-              xhr.open("GET", proxiedUrlFor(u));
+        this.hls = new HLS({
+          xhrSetup: (xhr, u) => {
+            if (u.startsWith(corsProxyPrefix)) {
+              u = u.substring(corsProxyPrefix.length);
             }
-          });
-  
-          this.hls.loadSource(videoUrl);
-          this.hls.attachMedia(this.video);
-  
-          this.hls.on(HLS.Events.ERROR, (event, data) => {
-            console.log("ERROR", data )
-            if (data.fatal) {
-              switch (data.type) {
-                case HLS.ErrorTypes.NETWORK_ERROR:
-                  // try to recover network error
-                  this.hls.startLoad();
-                  break;
-                case HLS.ErrorTypes.MEDIA_ERROR:
-                    this.hls.recoverMediaError();
-                  break;
-                default:
-                  console.log("ERROR", data )
-                  return;
-              }
+
+            // HACK HLS.js resolves relative urls internally, but our CORS proxying screws it up. Resolve relative to the original unproxied url.
+            // TODO extend HLS.js to allow overriding of its internal resolving instead
+            if (!u.startsWith("http")) {
+              u = buildAbsoluteURL(baseUrl, u.startsWith("/") ? u : `/${u}`);
             }
-          });
 
-          this.hls.on(HLS.Events.MANIFEST_PARSED, (event, data) => {
-            this.video.play().then(function () {
-              console.log("playing" );
-            }).catch(function (error) {
-              console.log("error autoplay" );
-            });
-
-          });
-        };
-  
-        setupHls();
-
-  
-        // Sometimes for weird streams HLS fails to initialize.
-        /*const setupInterval = setInterval(() => {
-          // Stop retrying if the src changed.
-          const isNoLongerSrc = this.data.src !== videoUrl;
-  
-          if (isReady() || isNoLongerSrc) {
-            clearInterval(setupInterval);
-          } else {
-            console.warn("HLS failed to read video, trying again");
-            setupHls();
+            xhr.open("GET", proxiedUrlFor(u));
           }
-        }, HLS_TIMEOUT);*/
-        // If not, see if native support will work
-      } else if (this.video.canPlayType(contentType)) {
-        this.video.src = videoUrl;
-        this.video.onerror = failLoad;
-
-        this.video.play().then(function () {
-          console.log("playing", data );
-        }).catch(function (error) {
-          console.log("error autoplay", data );
         });
-      } else {
-        console.log("HLS unsupported" );
-      }    
-    }
+
+        this.hls.loadSource(videoUrl);
+        this.hls.attachMedia(this.video);
+
+        this.hls.on(HLS.Events.ERROR, (event, data) => {
+          console.log("ERROR", data )
+          if (data.fatal) {
+            switch (data.type) {
+              case HLS.ErrorTypes.NETWORK_ERROR:
+                // try to recover network error
+                this.hls.startLoad();
+                break;
+              case HLS.ErrorTypes.MEDIA_ERROR:
+                  this.hls.recoverMediaError();
+                break;
+              default:
+                console.log("ERROR", data )
+                return;
+            }
+          }
+        });
+
+        this.hls.on(HLS.Events.MANIFEST_PARSED, (event, data) => {
+          this.loadTime = performance.now();
+          this.video.play().then(function () {            
+            console.log("playing" );
+          }).catch(function (error) {
+            console.log("error autoplay" );
+          });
+
+        });
+      };
+
+      setupHls();
+
+
+      // Sometimes for weird streams HLS fails to initialize.
+      /*const setupInterval = setInterval(() => {
+        // Stop retrying if the src changed.
+        const isNoLongerSrc = this.data.src !== videoUrl;
+
+        if (isReady() || isNoLongerSrc) {
+          clearInterval(setupInterval);
+        } else {
+          console.warn("HLS failed to read video, trying again");
+          setupHls();
+        }
+      }, HLS_TIMEOUT);*/
+      // If not, see if native support will work
+    } else if (this.video.canPlayType(contentType)) {
+      this.video.src = videoUrl;
+      this.video.onerror = failLoad;
+
+      this.video.play().then(function () {
+        console.log("playing", data );
+      }).catch(function (error) {
+        console.log("error autoplay", data );
+      });
+    } else {
+      console.log("HLS unsupported" );
+    }    
+  }
 }
 
 //AFrame DepthKit.js wrapper entity
 AFRAME.registerComponent('depthkit-stream', {
 
-    schema: {
-      videoPath : {type: 'string'},
-      renderMode: {type: 'string'},
-      depthMin:   {type: 'number', default: 0},
-      depthMax:   {type: 'number', default: 2.5},
-      pointSize:  {type: 'number', default: 8}
-    },
-  
-    /**
-     * Called once when component is attached. Generally for initial setup.
-     */
-    init: function () {
-        this.videoTexture = new VideoStreamTexture();
+  schema: {
+    videoPath : {type: 'string'},
+    renderMode: {type: 'string', default: 'points'},
+    depthMin: {type: 'number', default: 0.0},
+    depthMax: {type: 'number', default: 3.0},
+    pointSize: {type: 'number', default: 8.0},
+    uiPosition: {type: 'vec3', default: {x:0, y:0, z:0}},
+    uiRotation: {type: 'vec3', default: {x:0, y:0, z:0}},
+    uiScale: {type: 'vec3', default: {x:1, y:1, z:1}}, 
+    uiDelay: {type: 'number', default: 1.0}   
+  },
 
-        //we need to have a "play/unmute" button for browsers that have strict autoplay settings
-        var entity = document.createElement('a-entity');
-        //see hubs.html templage
-        entity.appendChild(document.getElementById("depthkit-unmute").content);
-        entity.object3D.position.set(0, 1, 1);
-        entity.object3D.rotation.set(0, 180, 0);
-        this.el.appendChild(entity);
 
-        //keep a ref to the video element so we can control it once we are loaded
-        const videoref = this.videoTexture.video;
-        entity.addEventListener('loaded', function() {
-          this.onClick = function(){
+  /**
+   * Called once when component is attached. Generally for initial setup.
+   */
+  init: function () {
+      this.videoTexture = new VideoStreamTexture();
 
-            //TODO only show if / when video is not playing, maybe delay checking for 1 seconds
-            console.log("play/unmute clicked");
-            videoref.play();
-            videoref.muted = false;
+      console.log( this.data);
 
-          }
-          var btn = entity.querySelector(".unmute-ui");
-          btn.object3D.addEventListener("interact", this.onClick);
-        });
-        
-        this._loadVideo();
-    },
-  
-    /**
-     * Called when component is attached and when component data changes.
-     * Generally modifies the entity based on the data.
-     */
-    update: function (oldData) {},
-  
-    /**
-     * Called when a component is removed (e.g., via removeAttribute).
-     * Generally undoes all modifications to the entity.
-     */
-    remove: function () {
-        this.videoTexture.dispose();
-    },
-  
-    /**
-     * Called on each scene tick.
-     */
-    tick: function (t) { 
+      //we need to have a "play/unmute" button for browsers that have strict autoplay settings
+      this.autoplayUi = document.createElement('a-entity');
+      //see hubs.html templage
+      this.autoplayUi .appendChild(document.getElementById("depthkit-stream-autoplay").content);
+      const pos = this.data.uiPosition;
+      this.autoplayUi .object3D.position.set(pos.x, pos.y, pos.z );
 
-       },
-  
-    /**
-     * Called when entity pauses.
-     * Use to stop or remove any dynamic or background behavior such as events.
-     */
-    pause: function () {},
-  
-    /**
-     * Called when entity resumes.
-     * Use to continue or add any dynamic or background behavior such as events.
-     */
-    play: function () {
-
-    },
-
-    setVideoUrl(videoUrl) {
-      if (this.videoTexture) {
-        // console.log("depthkit-stream, setting video url: " + videoUrl);
-        this.videoTexture.setVideoUrl(videoUrl);
-      }      
-    },
-
-    getDataValue(key, defaultValue) {
-      if(this.data.hasOwnProperty(key)) {
-        return this.data[key];
-      } else {
-        return defaultValue;
-      }
-    },
-
-    _loadVideo: function() {
+      const rot = this.data.uiRotation;
+      const noBillboard = rot.x + rot.y + rot.x > 0 
+      if( noBillboard){
+        this.autoplayUi.object3D.rotation.set( rot.x, rot.y, rot.z );     
+      }       
       
-      console.log("STREAMING renderMode:" + this.data.renderMode + ", videoPath:" + this.data.videoPath);
+      const scale = this.data.uiScale;
+      this.autoplayUi.object3D.scale.set( scale.x, scale.y, scale.z);
+      this.el.appendChild(this.autoplayUi);
+
+      //keep a ref to the video element so we can control it once we are loaded
+      const videoref = this.videoTexture.video;
+      this.autoplayUi.addEventListener('loaded', function() {
+        this.onClick = function(){
+
+          //TODO only show if / when video is not playing, maybe delay checking for 1 seconds
+          console.log("play/unmute clicked");
+          videoref.play();
+          videoref.muted = false;
+
+        }
+        var btn = this.querySelector(".unmute-ui");
+        
+        if(noBillboard){
+          btn.removeAttribute("billboard");
+        }
+
+        btn.object3D.addEventListener("interact", this.onClick);
+        this.setAttribute("visible", false);
+
+      });
+      
+      this._loadVideo();
+  },
+
+  /**
+   * Called when component is attached and when component data changes.
+   * Generally modifies the entity based on the data.
+   */
+  update: function (oldData) {},
+
+  /**
+   * Called when a component is removed (e.g., via removeAttribute).
+   * Generally undoes all modifications to the entity.
+   */
+  remove: function () {
+      this.videoTexture.dispose();
+  },
+
+  /**
+   * Called on each scene tick.
+   */
+  tick: function (t) { 
+
+    const dT = performance.now() - this.videoTexture.LoadTime;
+    if( this.videoTexture.LoadTime > 0 && dT > this.data.uiDelay){
+      //console.log("loadTime:" + this.videoTexture.LoadTime + " dT:" + dT+ " video currentTime:" +  this.videoTexture.video.currentTime )    
+      if( this.videoTexture.video.currentTime < this.data.uiDelay){
+        this.autoplayUi.setAttribute("visible", true);
+      }else{
+        this.autoplayUi.setAttribute("visible", false);
+      }  
+    }   
+  },
+
+  /**
+   * Called when entity pauses.
+   * Use to stop or remove any dynamic or background behavior such as events.
+   */
+  pause: function () {},
+
+  /**
+   * Called when entity resumes.
+   * Use to continue or add any dynamic or background behavior such as events.
+   */
+  play: function () {
+
+  },
+
+  setVideoUrl(videoUrl) {
+    if (this.videoTexture) {
+      // console.log("depthkit-stream, setting video url: " + videoUrl);
+      this.videoTexture.setVideoUrl(videoUrl);
+    }      
+  },
+
+  getDataValue(key, defaultValue) {
+    if(this.data.hasOwnProperty(key)) {
+      return this.data[key];
+    } else {
+      return defaultValue;
+    }
+  },
+
+  _loadVideo: function() {
     
-      this.videoTexture.startVideo(this.data.videoPath);
+    console.log("STREAMING renderMode:" + this.data.renderMode + ", videoPath:" + this.data.videoPath);
+  
+    this.videoTexture.startVideo(this.data.videoPath);
 
-      if(this.data.renderMode == "points") {
-        console.log("STREAMING video in POINTS mode");        
-        this.material = new ShaderMaterial({
-            uniforms: {
-                "map": {
-                    type: "t",
-                    value: this.videoTexture.texture
-                },
-                "time": {
-                    type: "f",
-                    value: 0.0
-                },
-                "opacity": {
-                    type: "f",
-                    value: 1.0
-                },
-                "pointSize" :{
-                  type: "f",
-                  value: this.getDataValue("pointSize", 8)
-                },
-                "depthMin" :{
-                  type: "f",
-                  value: this.getDataValue("depthMin", 0)
-                },
-                "depthMax" :{
-                  type: "f",
-                  value: this.getDataValue("depthMax", 2.5)
-                },
-                extensions:
-                {
-                    derivatives: true
-                }
-            },
-            side:DoubleSide,
-            vertexShader: vertexShaderPoints,
-            fragmentShader: fragmentShaderPoints,
-            transparent: true
-            //depthWrite:falses
-        });
-
-        let geometry = new PlaneBufferGeometry(2, 2, 320, 240);
-        let points = new Points(geometry, this.material);
-        points.position.y = 1;
-        this.el.object3D.add(points);
-
-      } else {
-
-        // Default render mode will be "cutout"
-
-        this.material = new ShaderMaterial({
+    if(this.data.renderMode == "points") {
+      console.log("STREAMING video in POINTS mode");        
+      this.material = new ShaderMaterial({
           uniforms: {
               "map": {
                   type: "t",
@@ -605,24 +596,71 @@ AFRAME.registerComponent('depthkit-stream', {
                   type: "f",
                   value: 1.0
               },
+              "pointSize" :{
+                type: "f",
+                value: this.getDataValue("pointSize", 8)
+              },
+              "depthMin" :{
+                type: "f",
+                value: this.getDataValue("depthMin", 0)
+              },
+              "depthMax" :{
+                type: "f",
+                value: this.getDataValue("depthMax", 2.5)
+              },
               extensions:
               {
                   derivatives: true
               }
           },
           side:DoubleSide,
-          vertexShader: vertexShaderCutout,
-          fragmentShader: fragmentShaderCutout,
+          vertexShader: vertexShaderPoints,
+          fragmentShader: fragmentShaderPoints,
           transparent: true
+          //depthWrite:falses
       });
 
-      let geometry = new PlaneBufferGeometry(2, 2);
-      let plane = new Mesh(geometry, this.material);
-      plane.position.y = 1;
-      this.el.object3D.add(plane);
+      let geometry = new PlaneBufferGeometry(2, 2, 320, 240);
+      let points = new Points(geometry, this.material);
+      points.position.y = 1;
+      this.el.object3D.add(points);
 
-      console.log("STREAMING video in PLANE mode");
+    } else {
 
-      }
+      // Default render mode will be "cutout"
+
+      this.material = new ShaderMaterial({
+        uniforms: {
+            "map": {
+                type: "t",
+                value: this.videoTexture.texture
+            },
+            "time": {
+                type: "f",
+                value: 0.0
+            },
+            "opacity": {
+                type: "f",
+                value: 1.0
+            },
+            extensions:
+            {
+                derivatives: true
+            }
+        },
+        side:DoubleSide,
+        vertexShader: vertexShaderCutout,
+        fragmentShader: fragmentShaderCutout,
+        transparent: true
+    });
+
+    let geometry = new PlaneBufferGeometry(2, 2);
+    let plane = new Mesh(geometry, this.material);
+    plane.position.y = 1;
+    this.el.object3D.add(plane);
+
+    console.log("STREAMING video in PLANE mode");
+
     }
-  });
+  }
+});

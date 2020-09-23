@@ -436,6 +436,24 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit-stream", "depthkit-stream", (el
   }
   el.setAttribute("depthkit-stream", {
     videoPath : componentData.src.trim(),
-    renderMode: componentData.mode.trim()
+    renderMode: componentData.mode.trim(),
+    depthMin: componentData.mindepth,
+    depthMax: componentData.maxdepth,
+    pointSize: componentData.pointSize,
+    uiPosition: componentData.uiPosition,
+    uiRotation: componentData.uiRotation,
+    uiDelay: componentData.uiDelay
   });  
+
+/*
+  videoPath : {type: 'string'},
+    renderMode: {type: 'string', default: 'points'},
+    depthMin: {type: 'number', default: 0.0},
+    depthMax: {type: 'number', default: 3.0},
+    pointSize: {type: 'number', default: 8.0},
+    uiPosition: {type: 'vec3', default: {x:0, y:0, z:0}},
+    uiRotation: {type: 'vec3', default: {x:0, y:0, z:0}},
+    uiScale: {type: 'vec3', default: {x:1, y:1, z:1}}, 
+    uiDelay: {type: 'number', default: 1.0}   */
+
 });
