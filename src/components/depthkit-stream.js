@@ -330,6 +330,7 @@ class VideoStreamTexture {
   
 
   dispose() {
+    console.log("Displose VideoTexture");
     if (this.texture.image instanceof HTMLVideoElement) {
       const video = this.texture.image;
       video.pause();
@@ -476,7 +477,9 @@ AFRAME.registerComponent('depthkit-stream', {
       //we need to have a "play/unmute" button for browsers that have strict autoplay settings
       this.autoplayUi = document.createElement('a-entity');
       //see hubs.html templage
-      this.autoplayUi .appendChild(document.getElementById("depthkit-stream-autoplay").content);
+      const template = document.getElementById("depthkit-stream-autoplay");
+      this.autoplayUi.appendChild(document.importNode(template.content, true));
+
       const pos = this.data.uiPosition;
       this.autoplayUi .object3D.position.set(pos.x, pos.y, pos.z );
 
