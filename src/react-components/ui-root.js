@@ -217,7 +217,11 @@ class UIRoot extends Component {
     objectInfo: null,
     objectSrc: "",
     isObjectListExpanded: false,
-    isPresenceListExpanded: false
+    isPresenceListExpanded: false,
+
+    //TODO: glowbox hack to allow lobby visitors with strict auto play to still start the stream
+    showAutoplay: false,
+    streamVideoRef: null
   };
 
   constructor(props) {
@@ -329,6 +333,10 @@ class UIRoot extends Component {
       }
     });
     this.props.scene.addEventListener("action_toggle_ui", () => this.setState({ hide: !this.state.hide }));
+
+    //TODO: glowwbox hack to allow lobby visitors with strict auto play to still start the stream
+    this.props.scene.addEventListener("show_autoplay_dialog", e => this.setState({ showAutoplay: true, streamVideoRef:e.detail.videoref }));
+    this.props.scene.addEventListener("hide_autoplay_dialog", e => this.setState({ showAutoplay: false, streamVideoRef:null }));
 
     const scene = this.props.scene;
 
@@ -827,6 +835,12 @@ class UIRoot extends Component {
   toggleShareDialog = async () => {
     this.props.store.update({ activity: { hasOpenedShare: true } });
     this.setState({ showShareDialog: !this.state.showShareDialog });
+  };
+
+  showStartStreamButton = async () => {
+    console.log("showStartStreamButton");
+    //TODO: glowbox hack to allow lobby visitors with strict auto play to still start the stream
+    
   };
 
   createObject = media => {
@@ -1602,7 +1616,7 @@ class UIRoot extends Component {
     const showBroadcastTip =
       (hasDiscordBridges || (hasEmbedPresence && !this.props.embed)) && !this.state.broadcastTipDismissed;
 
-    const showInviteButton = !showObjectInfo && !this.state.frozen && !watching && !preload;
+    const showInviteButton = false;//!showObjectInfo && !this.state.frozen && !watching && !preload;
 
     const showInviteTip =
       !showObjectInfo &&
@@ -1938,6 +1952,21 @@ class UIRoot extends Component {
             {this.state.frozen && (
               <button className={styles.leaveButton} onClick={() => this.exit("left")}>
                 <FormattedMessage id="entry.leave-room" />
+              </button>
+            )}            
+            {this.state.showAutoplay && 
+            !this.state.entered && ( 
+              <button className={styles.streamButton} 
+                onClick={() => {
+                  this.state.streamVideoRef.play(); 
+                  this.state.streamVideoRef.muted = false;
+    
+                  this.setState({showAutoplay:false});
+                }}>
+                <FormattedMessage id="autoplay"                 
+                description="Start Stream"
+                defaultMessage="Start Stream"                                
+                />
               </button>
             )}
             {showInviteButton && (

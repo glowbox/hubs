@@ -540,9 +540,11 @@ AFRAME.registerComponent('depthkit-stream', {
     const dT = performance.now() - this.videoTexture.LoadTime;
     if( this.videoTexture.LoadTime > 0 && dT > this.data.uiDelay){
       //console.log("loadTime:" + this.videoTexture.LoadTime + " dT:" + dT+ " video currentTime:" +  this.videoTexture.video.currentTime )    
-      if( this.videoTexture.video.currentTime < this.data.uiDelay){
+      if( this.videoTexture.video.currentTime < 0.5){
         this.autoplayUi.setAttribute("visible", true);
+        this.el.sceneEl.emit("show_autoplay_dialog", {videoref: this.videoTexture.video});
       }else{
+        this.el.sceneEl.emit("hide_autoplay_dialog", {videoref: this.videoTexture.video});
         this.autoplayUi.setAttribute("visible", false);
       }  
     }   
