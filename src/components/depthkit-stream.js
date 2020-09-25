@@ -293,10 +293,15 @@ class VideoStreamTexture {
       this.hls = null;
 
       this.loadTime = 0;
+      this.autoPlaying = false;
     }
 
     get LoadTime() {      
       return this.loadTime;
+    }
+
+    get AutoPlaying() {      
+      return this.autoPlaying;
     }
    
     update() {
@@ -410,10 +415,14 @@ class VideoStreamTexture {
 
         this.hls.on(HLS.Events.MANIFEST_PARSED, (event, data) => {
           this.loadTime = performance.now();
+          const _this = this;
           this.video.play().then(function () {            
             console.log("playing" );
+            _this.autoPlaying = true;
           }).catch(function (error) {
-            console.log("error autoplay" );
+            var s = window['Promise'] ? window['Promise'].toString() : '';
+            console.log("error autoplay " + error + " " + error.name);
+            _this.autoPlaying = false;
           });
 
         });
@@ -471,7 +480,16 @@ AFRAME.registerComponent('depthkit-stream', {
    */
   init: function () {
       this.videoTexture = new VideoStreamTexture();
-
+      this.el.sceneEl.addEventListener("autoplay_clicked", () => {        
+        const _this = this;
+        this.videoTexture.video.play().then(function () {            
+          console.log("playing" );
+          _this.videoTexture.autoPlaying = true;
+        }).catch(function (error) {
+          console.log("error" );
+          _this.videoTexture.autoPlaying = false;
+        });
+      });
       console.log( this.data);
 
       //we need to have a "play/unmute" button for browsers that have strict autoplay settings
@@ -494,15 +512,19 @@ AFRAME.registerComponent('depthkit-stream', {
       this.el.appendChild(this.autoplayUi);
 
       //keep a ref to the video element so we can control it once we are loaded
-      const videoref = this.videoTexture.video;
+      const _this = this;
+
       this.autoplayUi.addEventListener('loaded', function() {
         this.onClick = function(){
-
-          //TODO only show if / when video is not playing, maybe delay checking for 1 seconds
           console.log("play/unmute clicked");
-          videoref.play();
-          videoref.muted = false;
 
+          _this.videoTexture.video.play().then(function () {            
+            console.log("playing" );
+            _this.videoTexture.autoPlaying = true;
+          }).catch(function (error) {
+            console.log("error" );
+            _this.videoTexture.autoPlaying = false;
+          });
         }
         var btn = this.querySelector(".unmute-ui");
         
@@ -539,14 +561,14 @@ AFRAME.registerComponent('depthkit-stream', {
 
     const dT = performance.now() - this.videoTexture.LoadTime;
     if( this.videoTexture.LoadTime > 0 && dT > this.data.uiDelay){
-      //console.log("loadTime:" + this.videoTexture.LoadTime + " dT:" + dT+ " video currentTime:" +  this.videoTexture.video.currentTime )    
-      if( this.videoTexture.video.currentTime < 0.5){
-        this.autoplayUi.setAttribute("visible", true);
-        this.el.sceneEl.emit("show_autoplay_dialog", {videoref: this.videoTexture.video});
-      }else{
+        //console.log("loadTime:" + this.videoTexture.LoadTime + " dT:" + dT+ " video currentTime:" +  this.videoTexture.video.currentTime )    
+      if( this.videoTexture.autoPlaying ){
         this.el.sceneEl.emit("hide_autoplay_dialog", {videoref: this.videoTexture.video});
         this.autoplayUi.setAttribute("visible", false);
-      }  
+      }else{        
+        this.el.sceneEl.emit("show_autoplay_dialog", {videoref: this.videoTexture.video});
+        this.autoplayUi.setAttribute("visible", true);
+      }    
     }   
   },
 

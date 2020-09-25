@@ -1955,13 +1955,15 @@ class UIRoot extends Component {
               </button>
             )}            
             {this.state.showAutoplay && 
+            !this.state.entering &&
             !this.state.entered && ( 
               <button className={styles.streamButton} 
                 onClick={() => {
-                  this.state.streamVideoRef.play(); 
-                  this.state.streamVideoRef.muted = false;
-    
-                  this.setState({showAutoplay:false});
+                  //this.state.streamVideoRef.muted = false;
+                  //this.state.streamVideoRef.play(); 
+                  
+                  this.props.scene.emit("autoplay_clicked");
+                  //this.setState({showAutoplay:false});
                 }}>
                 <FormattedMessage id="autoplay"                 
                 description="Start Stream"
