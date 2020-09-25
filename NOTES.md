@@ -25,13 +25,16 @@ This fork introduces a few custom components:
 The following commands / shortcuts are supported:
 
 To create a ply model in a room
-ply: [url]
+`[ply: [url]]`
 
-- URL is a link to the ply model
+Where url is a link to the ply model
 
-To create a live stream in a room
-live: [hls mp4] [id]
+To create a live stream in a room:
+`live: [hls m3u8] [id]]`
 
+- hls m3u8 is the live stream end point.
+- id is optionallly the id of the depthkit stream you want to update
 
 To create a depthkit stream
-dk: [url]
+`[ dk: [url] ]`
+Where url is a link to the ply model
