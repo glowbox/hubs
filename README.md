@@ -1,3 +1,16 @@
+Volumetric Performance Toolbox
+=====
+
+> How can artists create new live performances during the time of COVID-19? Volumetric Performance Toolbox empowers creators to perform from their own living spaces for a virtual audience. Movement artist Valencia James performed publicly with the Toolbox for the first time on September 24, 2020 in the Mozilla Hubs virtual social space. The project is a collaboration between Valencia James, Glowbox and Sorob Louie as part of Eyebeam’s Rapid Response for a Better Digital Future fellowship.
+
+More information on the Volumetric Performance Toolbox here:
+
+https://valenciajames.com/volumetric-performance/
+https://www.glowbox.io/work/volumetric-performance/
+
+This is a fork of the Mozilla Hubs Cloud project, it introduces a few custom components to stream volumnetric video. See [Notes](notes.md) for details.
+
+
 # [Mozilla Hubs](https://hubs.mozilla.com/)
 
 [![License: MPL 2.0](https://img.shields.io/badge/License-MPL%202.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0) [![Build Status](https://travis-ci.org/mozilla/hubs.svg?branch=master)](https://travis-ci.org/mozilla/hubs) [![Discord](https://img.shields.io/discord/498741086295031808)](https://discord.gg/CzAbuGu)
