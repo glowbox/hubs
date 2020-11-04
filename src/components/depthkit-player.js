@@ -16,6 +16,11 @@ import {
     Object3D
   } from 'three'
 
+  import {
+    isNonCorsProxyDomain,
+    guessContentType,
+    proxiedUrlFor
+  } from "../utils/media-url-utils";
 
 import "depthkit";
 
@@ -99,8 +104,10 @@ AFRAME.registerComponent('depthkit-player', {
   
         console.log("Depthkit loadVideo - meta:" + this.data.metaPath + " video:" + this.data.videoPath);
         
+        
+
         this.player = new Depthkit();
-        this.player.load(this.data.metaPath, this.data.videoPath,
+        this.player.load(proxiedUrlFor(this.data.metaPath), proxiedUrlFor(this.data.videoPath),
             dkCharacter => {
                 this.character = dkCharacter;
 
