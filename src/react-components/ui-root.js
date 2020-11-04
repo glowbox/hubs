@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import copy from "copy-to-clipboard";
-import { IntlProvider, FormattedMessage, addLocaleData } from "react-intl";
-import en from "react-intl/locale-data/en";
+import { FormattedMessage } from "react-intl";
+import { WrappedIntlProvider } from "./wrapped-intl-provider";
 import screenfull from "screenfull";
 
 import configs from "../utils/configs";
@@ -27,7 +27,7 @@ import { getPresenceProfileForSession, discordBridgesForPresences } from "../uti
 import { getClientInfoClientId } from "./client-info-dialog";
 import { getCurrentStreamer } from "../utils/component-utils";
 
-import { lang, messages } from "../utils/i18n";
+import { getMessages } from "../utils/i18n";
 import Loader from "./loader";
 import AutoExitWarning from "./auto-exit-warning";
 import { TwoDEntryButton, GenericEntryButton, DaydreamEntryButton } from "./entry-buttons.js";
@@ -40,13 +40,11 @@ import AvatarUrlDialog from "./avatar-url-dialog.js";
 import InviteDialog from "./invite-dialog.js";
 import InviteTeamDialog from "./invite-team-dialog.js";
 import LinkDialog from "./link-dialog.js";
-import InAppBrowserDialog from "./in-app-browser-dialog.js";
 import SignInDialog from "./sign-in-dialog.js";
 import RoomSettingsDialog from "./room-settings-dialog.js";
 import CloseRoomDialog from "./close-room-dialog.js";
 import Tip from "./tip.js";
 import WebRTCScreenshareUnsupportedDialog from "./webrtc-screenshare-unsupported-dialog.js";
-import WebAssemblyUnsupportedDialog from "./webassembly-unsupported-dialog.js";
 import WebVRRecommendDialog from "./webvr-recommend-dialog.js";
 import FeedbackDialog from "./feedback-dialog.js";
 import HelpDialog from "./help-dialog.js";
@@ -83,8 +81,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import qsTruthy from "../utils/qs_truthy";
 import { CAMERA_MODE_INSPECT } from "../systems/camera-system";
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
-
-addLocaleData([...en]);
 
 // This is a list of regexes that match the microphone labels of HMDs.
 //
@@ -137,7 +133,6 @@ class UIRoot extends Component {
     environmentSceneLoaded: PropTypes.bool,
     entryDisallowed: PropTypes.bool,
     roomUnavailableReason: PropTypes.string,
-    platformUnsupportedReason: PropTypes.string,
     hubIsBound: PropTypes.bool,
     isSupportAvailable: PropTypes.bool,
     presenceLogEntries: PropTypes.array,
@@ -152,8 +147,6 @@ class UIRoot extends Component {
     signInContinueTextId: PropTypes.string,
     onContinueAfterSignIn: PropTypes.func,
     showSafariMicDialog: PropTypes.bool,
-    showInAppBrowserDialog: PropTypes.bool,
-    showWebAssemblyDialog: PropTypes.bool,
     showOAuthDialog: PropTypes.bool,
     onCloseOAuthDialog: PropTypes.func,
     oauthInfo: PropTypes.array,
@@ -227,12 +220,6 @@ class UIRoot extends Component {
   constructor(props) {
     super(props);
 
-    if (props.showInAppBrowserDialog) {
-      this.state.dialog = <InAppBrowserDialog closable={false} />;
-    }
-    if (props.showWebAssemblyDialog) {
-      this.state.dialog = <WebAssemblyUnsupportedDialog closable={false} />;
-    }
     if (props.showSafariMicDialog) {
       this.state.dialog = <SafariMicDialog closable={false} />;
     }
@@ -414,7 +401,7 @@ class UIRoot extends Component {
     } = this.props;
 
     this.showNonHistoriedDialog(SignInDialog, {
-      message: messages[signInMessageId],
+      message: getMessages()[signInMessageId],
       onSignIn: async email => {
         const { authComplete } = await authChannel.startAuthentication(email, this.props.hubChannel);
 
@@ -425,8 +412,8 @@ class UIRoot extends Component {
         this.setState({ signedIn: true });
         this.showNonHistoriedDialog(SignInDialog, {
           authComplete: true,
-          message: messages[signInCompleteMessageId],
-          continueText: messages[signInContinueTextId],
+          message: getMessages()[signInCompleteMessageId],
+          continueText: getMessages()[signInContinueTextId],
           onClose: onContinueAfterSignIn,
           onContinue: onContinueAfterSignIn
         });
@@ -827,11 +814,6 @@ class UIRoot extends Component {
     });
   };
 
-  showShareDialog = () => {
-    this.props.store.update({ activity: { hasOpenedShare: true } });
-    this.setState({ showShareDialog: true });
-  };
-
   toggleShareDialog = async () => {
     this.props.store.update({ activity: { hasOpenedShare: true } });
     this.setState({ showShareDialog: !this.state.showShareDialog });
@@ -892,7 +874,7 @@ class UIRoot extends Component {
 
   showSignInDialog = () => {
     this.showNonHistoriedDialog(SignInDialog, {
-      message: messages["sign-in.prompt"],
+      message: getMessages()["sign-in.prompt"],
       onSignIn: async email => {
         const { authComplete } = await this.props.authChannel.startAuthentication(email, this.props.hubChannel);
 
@@ -977,13 +959,13 @@ class UIRoot extends Component {
 
   renderInterstitialPrompt = () => {
     return (
-      <IntlProvider locale={lang} messages={messages}>
+      <WrappedIntlProvider>
         <div className={styles.interstitial} onClick={() => this.props.onInterstitialPromptClicked()}>
           <div>
             <FormattedMessage id="interstitial.prompt" />
           </div>
         </div>
-      </IntlProvider>
+      </WrappedIntlProvider>
     );
   };
 
@@ -1007,7 +989,7 @@ class UIRoot extends Component {
             .<br />
           </IfFeature>
           If you have questions, contact us at{" "}
-          <a href={`mailto:${messages["contact-email"]}`}>
+          <a href={`mailto:${getMessages()["contact-email"]}`}>
             <FormattedMessage id="contact-email" />
           </a>
           .<p />
@@ -1018,28 +1000,8 @@ class UIRoot extends Component {
           </IfFeature>
         </div>
       );
-    } else if (this.props.platformUnsupportedReason === "no_data_channels") {
-      // TODO i18n, due to links and markup
-      subtitle = (
-        <div>
-          Your browser does not support{" "}
-          <a
-            href="https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createDataChannel#Browser_compatibility"
-            rel="noreferrer noopener"
-          >
-            WebRTC Data Channels
-          </a>
-          , which is required to use {messages["app-name"]}.
-          <br />
-          If you&quot;d like to use {messages["app-name"]} with Oculus or SteamVR, you can{" "}
-          <a href="https://www.mozilla.org/firefox" rel="noreferrer noopener">
-            Download Firefox
-          </a>
-          .
-        </div>
-      );
     } else {
-      const reason = this.props.roomUnavailableReason || this.props.platformUnsupportedReason;
+      const reason = this.props.roomUnavailableReason;
       const tcpUrl = new URL(document.location.toString());
       const tcpParams = new URLSearchParams(tcpUrl.search);
       tcpParams.set("force_tcp", true);
@@ -1066,12 +1028,12 @@ class UIRoot extends Component {
     }
 
     return (
-      <IntlProvider locale={lang} messages={messages}>
+      <WrappedIntlProvider>
         <div className="exited-panel">
           <img className="exited-panel__logo" src={configs.image("logo")} />
           <div className="exited-panel__subtitle">{subtitle}</div>
         </div>
-      </IntlProvider>
+      </WrappedIntlProvider>
     );
   };
 
@@ -1097,6 +1059,16 @@ class UIRoot extends Component {
     return (
       <div className={entryStyles.entryPanel}>
         <div className={entryStyles.name}>
+          <button
+            aria-label="Close room entry panel and spectate from lobby"
+            onClick={() => this.setState({ watching: true })}
+            className={entryStyles.collapseButton}
+          >
+            <i>
+              <FontAwesomeIcon icon={faTimes} />
+            </i>
+          </button>
+
           {this.props.hubChannel.canOrWillIfCreator("update_hub") ? (
             <button
               className={entryStyles.renameButton}
@@ -1113,15 +1085,6 @@ class UIRoot extends Component {
           ) : (
             <span>{this.props.hub.name}</span>
           )}
-          <button
-            aria-label="Close room entry panel and spectate from lobby"
-            onClick={() => this.setState({ watching: true })}
-            className={entryStyles.collapseButton}
-          >
-            <i>
-              <FontAwesomeIcon icon={faTimes} />
-            </i>
-          </button>
 
           <button
             aria-label="Toggle Favorited"
@@ -1482,24 +1445,21 @@ class UIRoot extends Component {
     };
     if (this.props.hide || this.state.hide) return <div className={classNames(rootStyles)} />;
 
-    const isExited = this.state.exited || this.props.roomUnavailableReason || this.props.platformUnsupportedReason;
+    const isExited = this.state.exited || this.props.roomUnavailableReason;
     const preload = this.props.showPreload;
 
     const isLoading =
-      !preload &&
-      (!this.state.hideLoader || !this.state.didConnectToNetworkedScene) &&
-      !(this.props.showInAppBrowserDialog || this.props.showWebAssemblyDialog) &&
-      !this.props.showSafariMicDialog;
+      !preload && (!this.state.hideLoader || !this.state.didConnectToNetworkedScene) && !this.props.showSafariMicDialog;
 
     const hasPush = navigator.serviceWorker && "PushManager" in window;
 
     if (this.props.showOAuthDialog && !this.props.showInterstitialPrompt)
       return (
-        <IntlProvider locale={lang} messages={messages}>
+        <WrappedIntlProvider>
           <div className={classNames(rootStyles)}>
             <OAuthDialog onClose={this.props.onCloseOAuthDialog} oauthInfo={this.props.oauthInfo} />
           </div>
-        </IntlProvider>
+        </WrappedIntlProvider>
       );
     if (isExited) return this.renderExitedPane();
     if (isLoading && this.state.showPrefs) {
@@ -1595,7 +1555,7 @@ class UIRoot extends Component {
       this.setState({ objectInfo: el, objectSrc: src });
       const cameraSystem = this.props.scene.systems["hubs-systems"].cameraSystem;
       cameraSystem.uninspect();
-      cameraSystem.inspect(el.object3D, 1.5, true);
+      cameraSystem.inspect(el.object3D, el.object3D, 1.5, true);
     };
 
     const mediaSource = this.props.mediaSearchStore.getUrlMediaSource(this.props.history.location);
@@ -1616,7 +1576,8 @@ class UIRoot extends Component {
     const showBroadcastTip =
       (hasDiscordBridges || (hasEmbedPresence && !this.props.embed)) && !this.state.broadcastTipDismissed;
 
-    const showInviteButton = false;//!showObjectInfo && !this.state.frozen && !watching && !preload;
+    const inviteEntryMode = this.props.hub && this.props.hub.entry_mode === "invite";
+    const showInviteButton = !showObjectInfo && !this.state.frozen && !watching && !preload && !inviteEntryMode;
 
     const showInviteTip =
       !showObjectInfo &&
@@ -1675,7 +1636,7 @@ class UIRoot extends Component {
 
     return (
       <ReactAudioContext.Provider value={this.state.audioContext}>
-        <IntlProvider locale={lang} messages={messages}>
+        <WrappedIntlProvider>
           <div className={classNames(rootStyles)}>
             {this.state.dialog}
             {preload &&
@@ -1778,15 +1739,17 @@ class UIRoot extends Component {
               history={this.props.history}
               render={() =>
                 this.renderDialog(RoomSettingsDialog, {
-                  showRoomAccessSettings: this.props.hubChannel.can("update_hub_promotion"),
+                  showPublicRoomSetting: this.props.hubChannel.can("update_hub_promotion"),
                   initialSettings: {
                     name: this.props.hub.name,
                     description: this.props.hub.description,
                     member_permissions: this.props.hub.member_permissions,
                     room_size: this.props.hub.room_size,
-                    allow_promotion: this.props.hub.allow_promotion
+                    allow_promotion: this.props.hub.allow_promotion,
+                    entry_mode: this.props.hub.entry_mode
                   },
-                  onChange: settings => this.props.hubChannel.updateHub(settings)
+                  onChange: settings => this.props.hubChannel.updateHub(settings),
+                  hubChannel: this.props.hubChannel
                 })
               }
             />
@@ -2235,7 +2198,7 @@ class UIRoot extends Component {
               </div>
             )}
           </div>
-        </IntlProvider>
+        </WrappedIntlProvider>
       </ReactAudioContext.Provider>
     );
   }
