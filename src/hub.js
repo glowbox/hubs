@@ -43,9 +43,6 @@ import "./components/point-model";
 
 import "./components/depthkit-player";
 
-import "./components/depthkit2d-player";
-
-
 import "./components/scene-components";
 import "./components/scale-in-screen-space";
 import "./components/mute-mic";
@@ -80,7 +77,7 @@ import "./components/visibility-while-frozen";
 import "./components/stats-plus";
 import "./components/networked-avatar";
 import "./components/media-views";
-import "./components/depthkit-stream";
+import "./components/vpt-stream";
 import "./components/avatar-volume-controls";
 import "./components/pinch-to-move";
 import "./components/pitch-yaw-rotator";
@@ -1553,77 +1550,74 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const incomingMessage = { name, type, body, maySpawn, sessionId: session_id };
 
-    if (body.startsWith("dk:"))  {
+    if (body.startsWith("dk:")) {
       //dk: http://location/video.mp4
       const commandParts = body.split(/\s+/);
       console.log("depthkit " + commandParts[1]);
 
       const player = document.createElement("a-entity");
-      player.setAttribute("depthkit-player",{
+      player.setAttribute("depthkit-player", {
         videoPath: commandParts[1],
-        metaPath:""
+        metaPath: ""
       });
 
-      player.setAttribute("body-helper",{
-        type: "static", scaleAutoUpdate: false
+      player.setAttribute("body-helper", {
+        type: "static",
+        scaleAutoUpdate: false
       });
 
       scene.appendChild(player);
-    } else if( body.startsWith("live:")) {
+    } else if (body.startsWith("live:")) {
       const commandParts = body.split(/\s+/);
       console.log("live " + commandParts);
 
-      if(commandParts.length > 2) {
-        
+      if (commandParts.length > 2) {
         // if there is a third parameter, it is the ID of the a-frame element, so update the video source
         // of an existing element instead of creating a new one.
-        
-        let element = document.getElementById(commandParts[2]);
 
-        // make sure the element exists, and has a depthkit-stream attached to it.
-        if((element != null) && element.hasOwnProperty("components") && element.components["depthkit-stream"] ) {
-          element.components["depthkit-stream"].setVideoUrl(commandParts[1]);
+        const element = document.getElementById(commandParts[2]);
+
+        // make sure the element exists, and has a vpt-stream attached to it.
+        if (element != null && element.hasOwnProperty("components") && element.components["vpt-stream"]) {
+          element.components["vpt-stream"].setVideoUrl(commandParts[1]);
         }
-
       } else {
-
-        // No third parameter, instantiate a new depthkit-stream component.
+        // No third parameter, instantiate a new vpt-stream component.
 
         const stream = document.createElement("a-entity");
-        stream.setAttribute("depthkit-stream",{
-          videoPath: commandParts[1],
-          renderMode: "points"
+        stream.setAttribute("vpt-stream", {
+          videoPath: commandParts[1]
         });
 
-        stream.setAttribute("body-helper",{
-          type: "static", scaleAutoUpdate: false
+        stream.setAttribute("body-helper", {
+          type: "static",
+          scaleAutoUpdate: false
         });
 
         scene.appendChild(stream);
-
       }
-
     } else if (body.startsWith("ply:")) {
       //ply: http://location/ply.ply
       const commandParts = body.split(/\s+/);
       console.log("ply " + commandParts);
 
       const model = document.createElement("a-entity");
-      model.setAttribute("point-model",{
+      model.setAttribute("point-model", {
         modelpath: commandParts[1],
         texturepath: ""
       });
 
-      model.setAttribute("body-helper",{
-        type: "static", scaleAutoUpdate: false
+      model.setAttribute("body-helper", {
+        type: "static",
+        scaleAutoUpdate: false
       });
 
       scene.appendChild(model);
-    }else{
+    } else {
       if (scene.is("vr-mode")) {
         createInWorldLogMessage(incomingMessage);
       }
-  
+
       addToPresenceLog(incomingMessage);
     }
 
@@ -1694,5 +1688,4 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   authChannel.setSocket(socket);
   linkChannel.setSocket(socket);
-
 });

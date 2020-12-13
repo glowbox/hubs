@@ -80,8 +80,7 @@
     "dashjs": "^3.1.0",
     "dayjs-ext": "^2.2.0",
     "deepmerge": "^2.1.1",
-    "depthkit": "github:glowbox/Depthkit.js#master",
-    "depthkit2d": "github:glowbox/depthkit2d#master",
+    "depthkit": "github:volumetricperformance/Depthkit.js#master",
     "detect-browser": "^3.0.1",
     "draft-js": "^0.10.5",
     "draft-js-counter-plugin": "^2.0.1",
@@ -92,7 +91,6 @@
     "event-target-shim": "^3.0.1",
     "form-data": "^3.0.0",
     "form-urlencoded": "^2.0.4",
-    "fsevents": "^2.1.3",
     "history": "^4.7.2",
     "hls.js": "^0.14.6",
     "js-cookie": "^2.2.0",
@@ -194,6 +192,6 @@
     "worker-loader": "^2.0.0"
   },
   "optionalDependencies": {
-    "fsevents": "^2.1.3"
+    "fsevents": "^2.2.1"
   }
 }

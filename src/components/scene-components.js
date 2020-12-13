@@ -28,5 +28,5 @@ import "./trigger-volume";
 import "./video-pause-state";
 import "./particle-emitter";
 import "./depthkit-player";
-import "./depthkit2d-player";
-import "./point-model"
+import "./point-model";
+import "./vpt-stream";

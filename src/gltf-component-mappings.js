@@ -411,52 +411,41 @@ AFRAME.GLTFModelPlus.registerComponent("audio-settings", "audio-settings", (el, 
 
 AFRAME.GLTFModelPlus.registerComponent("point-model", "point-model", (el, _componentName, componentData) => {
   console.log("Ply Model");
-  if( componentData.hasOwnProperty('id')){
+  if (componentData.hasOwnProperty("id")) {
     el.setAttribute("id", componentData.id.trim());
   }
-  
+
   el.setAttribute("point-model", {
     texturepath: "",
-    modelpath : componentData.src.trim(),
-    size:  componentData.size,
+    modelpath: componentData.src.trim(),
+    size: componentData.size,
     alphaTest: componentData.alphaTest,
     opacity: componentData.opacity,
     transparent: componentData.transparent,
     blending: componentData.blending,
-    sizeAttenuation: componentData.sizeAttenuation,
-
+    sizeAttenuation: componentData.sizeAttenuation
   });
 });
 
 AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el, _componentName, componentData) => {
   console.log("Depthkit");
 
-  if( componentData.hasOwnProperty('id')){
+  if (componentData.hasOwnProperty("id")) {
     el.setAttribute("id", componentData.id.trim());
   }
   el.setAttribute("depthkit-player", {
     metaPath: "",
-    videoPath : componentData.src.trim()
-  });  
+    videoPath: componentData.src.trim()
+  });
 });
 
-AFRAME.GLTFModelPlus.registerComponent("depthkit2d-player", "depthkit2d-player", (el, _componentName, componentData) => {
-  console.log("Depthkit2D");
-  if( componentData.hasOwnProperty('id')){
-    el.setAttribute("id", componentData.id.trim());
-  }
-  el.setAttribute("depthkit2d-player", {
-    videoPath : componentData.src.trim()
-  });  
-});
-
-AFRAME.GLTFModelPlus.registerComponent("depthkit-stream", "depthkit-stream", (el, _componentName, componentData) => {
+AFRAME.GLTFModelPlus.registerComponent("vpt-stream", "vpt-stream", (el, _componentName, componentData) => {
   console.log("Depthkit Stream");
-  if( componentData.hasOwnProperty('id')){
+  if (componentData.hasOwnProperty("id")) {
     el.setAttribute("id", componentData.id.trim());
   }
-  el.setAttribute("depthkit-stream", {
-    videoPath : componentData.src.trim(),
+  el.setAttribute("vpt-stream", {
+    videoPath: componentData.src.trim(),
     renderMode: componentData.mode.trim(),
     depthMin: componentData.mindepth,
     depthMax: componentData.maxdepth,
@@ -464,9 +453,9 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit-stream", "depthkit-stream", (el
     uiPosition: componentData.uiPosition,
     uiRotation: componentData.uiRotation,
     uiDelay: componentData.uiDelay
-  });  
+  });
 
-/*
+  /*
   videoPath : {type: 'string'},
     renderMode: {type: 'string', default: 'points'},
     depthMin: {type: 'number', default: 0.0},
@@ -476,5 +465,4 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit-stream", "depthkit-stream", (el
     uiRotation: {type: 'vec3', default: {x:0, y:0, z:0}},
     uiScale: {type: 'vec3', default: {x:1, y:1, z:1}}, 
     uiDelay: {type: 'number', default: 1.0}   */
-
 });
