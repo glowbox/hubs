@@ -80,7 +80,7 @@
     "dashjs": "^3.1.0",
     "dayjs-ext": "^2.2.0",
     "deepmerge": "^2.1.1",
-    "depthkit": "github:volumetricperformance/Depthkit.js#master",
+    "depthkit": "github:volumetricperformance/Depthkit.js",
     "detect-browser": "^3.0.1",
     "draft-js": "^0.10.5",
     "draft-js-counter-plugin": "^2.0.1",
@@ -108,7 +108,7 @@
     "phoenix": "github:gfodor/phoenix-js#master",
     "prop-types": "^15.7.2",
     "raven-js": "^3.20.1",
-    "react": "^16.1.1",
+    "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-emoji-render": "^0.4.6",
     "react-infinite-scroller": "^1.2.2",
@@ -147,7 +147,7 @@
     "cors": "^2.8.4",
     "css-loader": "^1.0.0",
     "dotenv": "^5.0.1",
-    "eslint": "^6.8.0",
+    "eslint": "^5.16.0",
     "eslint-config-prettier": "^2.9.0",
     "eslint-plugin-prettier": "^2.6.2",
     "eslint-plugin-react": "^7.10.0",
@@ -164,7 +164,6 @@
     "mini-css-extract-plugin": "^0.8.0",
     "ncp": "^2.0.0",
     "node-fetch": "^2.6.0",
-    "node-sass": "^4.14.1",
     "npm-scripts-info": "0.3.9",
     "ora": "^4.0.2",
     "phoenix-channels": "^1.0.0",
@@ -185,13 +184,13 @@
     "svg-inline-loader": "^0.8.0",
     "tar": "^5.0.5",
     "url-loader": "^1.0.1",
-    "webpack": "^4.32.2",
-    "webpack-bundle-analyzer": "^3.8.0",
-    "webpack-cli": "^3.3.12",
-    "webpack-dev-server": "^3.11.0",
+    "webpack": "^4.43.0",
+    "webpack-bundle-analyzer": "^3.3.2",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.1.14",
     "worker-loader": "^2.0.0"
   },
   "optionalDependencies": {
-    "fsevents": "^2.2.1"
+    "fsevents": "^2.1.3"
   }
 }
