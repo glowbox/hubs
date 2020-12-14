@@ -30,9 +30,9 @@ import "depthkit";
 //AFrame DepthKit.js wrapper entity
 AFRAME.registerComponent("vpt-stream", {
   schema: {
-    videoPath: { type: "string" },
+    src: { type: "string" },
     meta: { type: "string" },
-    renderMode: { type: "string", default: "points" },
+    renderMode: { type: "string", default: "perspective" },
     depthMin: { type: "number", default: 0.0 },
     depthMax: { type: "number", default: 4.0 },
     pointSize: { type: "number", default: 8.0 },
@@ -58,7 +58,7 @@ AFRAME.registerComponent("vpt-stream", {
       console.log(`${event.type} ${event.message}`);
     });
 
-    this.add(this.vptstream);
+    this.el.object3D.add(this.vptstream);
 
     //listen for auto play events
     this.el.sceneEl.addEventListener("autoplay_clicked", () => {
@@ -124,7 +124,7 @@ AFRAME.registerComponent("vpt-stream", {
       this.setAttribute("visible", false);
     });
 
-    this._loadVideo();
+    this.loadMedia();
   },
 
   /**
@@ -186,18 +186,13 @@ AFRAME.registerComponent("vpt-stream", {
   },
 
   async loadMedia() {
-    if (!this.data.videoPath || this.data.videoPath.length < 5) {
+    if (!this.data.src || this.data.src.length < 5) {
       console.error("vptstream invalid src");
       return;
     }
 
-    if (!this.data.meta || this.data.meta.length < 5) {
-      console.error("vptstream invalid meta");
-      return;
-    }
-
-    let url = this.data.videoPath;
-    const fileExtension = url.substr(this.data.videoPath.lastIndexOf(".") + 1);
+    let url = this.data.src;
+    const fileExtension = url.substr(url.lastIndexOf(".") + 1);
 
     if (fileExtension != "m3u8") {
       try {
@@ -205,6 +200,7 @@ AFRAME.registerComponent("vpt-stream", {
         url = await url.text();
       } catch (error) {
         console.error("vptstream Stream Load error", error);
+        return;
       }
     }
 

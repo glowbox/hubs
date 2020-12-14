@@ -440,20 +440,17 @@ AFRAME.GLTFModelPlus.registerComponent("depthkit-player", "depthkit-player", (el
 });
 
 AFRAME.GLTFModelPlus.registerComponent("vpt-stream", "vpt-stream", (el, _componentName, componentData) => {
-  console.log("Depthkit Stream");
+  console.log("VPT Stream " + _componentName);
   if (componentData.hasOwnProperty("id")) {
     el.setAttribute("id", componentData.id.trim());
   }
-  el.setAttribute("vpt-stream", {
-    videoPath: componentData.src.trim(),
-    renderMode: componentData.mode.trim(),
-    depthMin: componentData.mindepth,
-    depthMax: componentData.maxdepth,
-    pointSize: componentData.pointSize,
-    uiPosition: componentData.uiPosition,
-    uiRotation: componentData.uiRotation,
-    uiDelay: componentData.uiDelay
-  });
+
+  el.setAttribute(_componentName, componentData);
+
+  //bypass the "schema" as it does not support nested objects
+  //  if (componentData.hasOwnProperty("meta")) {
+  //    el.setAttribute("vpt-stream", {meta: JSON.stringify( componentData.meta) });
+  //  }
 
   /*
   videoPath : {type: 'string'},
