@@ -3,27 +3,10 @@
  * @namespace depthkit-stream
  * @component depthkit-stream
  */
-import {
-  Scene,
-  PerspectiveCamera,
-  WebGLRenderer,
-  TextureLoader,
-  AdditiveBlending,
-  PlaneGeometry,
-  PlaneBufferGeometry,
-  MeshBasicMaterial,
-  LinearFilter,
-  NearestFilter,
-  RGBFormat,
-  ShaderMaterial,
-  VideoTexture,
-  PointsMaterial,
-  Points,
-  Vector3,
-  CatmullRomCurve3,
-  Object3D,
-  DoubleSide
-} from "three";
+
+import { isNonCorsProxyDomain, guessContentType, proxiedUrlFor } from "../utils/media-url-utils";
+
+const HLS = require("hls.js");
 
 import "depthkit";
 
@@ -46,16 +29,18 @@ AFRAME.registerComponent("vpt-stream", {
    * Called once when component is attached. Generally for initial setup.
    */
   init: function() {
+
+    //HACK: the way the depthkit library is built, it expects a global HLS object to exist
+    window.HLS = HLS;
+
     this.vptstream = new VPTStream();
 
-    document.body.appendChild(this.vptstream.video);
-
     this.vptstream.addEventListener(STREAMEVENTS.PLAY_SUCCESS, function(event) {
-      console.log(`${event.type} ${event.message}`);
+      console.log(`STREAMEVENTS.PLAY_SUCCESS ${event.type} ${event.message}`);
     });
 
     this.vptstream.addEventListener(STREAMEVENTS.PLAY_ERROR, function(event) {
-      console.log(`${event.type} ${event.message}`);
+      console.log(`STREAMEVENTS.PLAY_ERROR ${event.type} ${event.message}`);
     });
 
     this.el.object3D.add(this.vptstream);
@@ -75,6 +60,7 @@ AFRAME.registerComponent("vpt-stream", {
         });
     });
 
+    console.log("vpt-stream data")
     console.log(this.data);
 
     //we need to have a "play/unmute" button for browsers that have strict autoplay settings
@@ -124,7 +110,13 @@ AFRAME.registerComponent("vpt-stream", {
       this.setAttribute("visible", false);
     });
 
-    this.loadMedia();
+    //wait for the environment to finish loading
+    this.el.sceneEl.addEventListener("environment-scene-loaded", function(){
+      console.log("onEnvironmentSceneLoaded");
+      _this.loadMedia();
+    });
+
+    //this.loadMedia();
   },
 
   /**
@@ -138,7 +130,6 @@ AFRAME.registerComponent("vpt-stream", {
    * Generally undoes all modifications to the entity.
    */
   remove: function() {
-    this.videoTexture.dispose();
   },
 
   /**
@@ -146,6 +137,7 @@ AFRAME.registerComponent("vpt-stream", {
    */
   tick: function(t) {
     const dT = performance.now() - this.vptstream.LoadTime;
+
     if (this.vptstream.LoadTime > 0 && dT > this.data.uiDelay) {
       //console.log("loadTime:" + this.videoTexture.LoadTime + " dT:" + dT+ " video currentTime:" +  this.videoTexture.video.currentTime )
       if (this.vptstream.playing) {
@@ -191,13 +183,14 @@ AFRAME.registerComponent("vpt-stream", {
       return;
     }
 
-    let url = this.data.src;
+    let url = proxiedUrlFor( this.data.src);
     const fileExtension = url.substr(url.lastIndexOf(".") + 1);
 
     if (fileExtension != "m3u8") {
       try {
         url = await fetch(url);
         url = await url.text();
+        url = proxiedUrlFor( url);
       } catch (error) {
         console.error("vptstream Stream Load error", error);
         return;
