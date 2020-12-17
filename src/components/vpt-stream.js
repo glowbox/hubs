@@ -5,8 +5,9 @@
  */
 
 import { isNonCorsProxyDomain, guessContentType, proxiedUrlFor } from "../utils/media-url-utils";
-
-const HLS = require("hls.js");
+import { buildAbsoluteURL } from "url-toolkit";
+import configs from "../utils/configs"
+import Hls from "hls.js"
 
 import "depthkit";
 
@@ -31,9 +32,10 @@ AFRAME.registerComponent("vpt-stream", {
   init: function() {
 
     //HACK: the way the depthkit library is built, it expects a global HLS object to exist
-    window.HLS = HLS;
+    window.Hls = Hls;
 
     this.vptstream = new VPTStream();
+    this.vptstream.hls_xhroverride = this.proxyHLS;
 
     this.vptstream.addEventListener(STREAMEVENTS.PLAY_SUCCESS, function(event) {
       console.log(`STREAMEVENTS.PLAY_SUCCESS ${event.type} ${event.message}`);
@@ -119,6 +121,22 @@ AFRAME.registerComponent("vpt-stream", {
     //this.loadMedia();
   },
 
+  proxyHLS: function(xhr, u) {
+    const corsProxyPrefix = `https://${configs.CORS_PROXY_SERVER}/`;
+    if (u.startsWith(corsProxyPrefix)) {
+      u = u.substring(corsProxyPrefix.length);
+    }
+
+    // HACK HLS.js resolves relative urls internally, but our CORS proxying screws it up. Resolve relative to the original unproxied url.
+    // TODO extend HLS.js to allow overriding of its internal resolving instead
+    if (!u.startsWith("http")) {
+      u = buildAbsoluteURL(baseUrl, u.startsWith("/") ? u : `/${u}`);
+    }
+
+    //console.log("proxyHLS:" + proxiedUrlFor(u));
+    xhr.open("GET", proxiedUrlFor(u));
+  },
+
   /**
    * Called when component is attached and when component data changes.
    * Generally modifies the entity based on the data.
@@ -183,22 +201,23 @@ AFRAME.registerComponent("vpt-stream", {
       return;
     }
 
-    let url = proxiedUrlFor( this.data.src);
+    let url =  this.data.src;
     const fileExtension = url.substr(url.lastIndexOf(".") + 1);
 
     if (fileExtension != "m3u8") {
       try {
         url = await fetch(url);
         url = await url.text();
-        url = proxiedUrlFor( url);
       } catch (error) {
         console.error("vptstream Stream Load error", error);
         return;
       }
     }
 
+    const proxySrc = proxiedUrlFor(url);
+
     const params = {
-      videoPath: url,
+      videoPath: proxySrc,
       meta: this.data.meta,
       renderMode: "perspective"
     };
