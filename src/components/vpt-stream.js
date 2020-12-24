@@ -20,6 +20,10 @@ AFRAME.registerComponent("vpt-stream", {
     depthMin: { type: "number", default: 0.0 },
     depthMax: { type: "number", default: 4.0 },
     pointSize: { type: "number", default: 8.0 },
+    scale: { type: "number", default: 1.0 },
+    startat: { type: "number", default: 0.0 },
+    thresholdMin: { type: "vec3", default: { x: -2.0, y: -2.0, z: 0 } },
+    thresholdMax: { type: "vec3", default: { x: 2.0, y: 2.0, z: 4.0 } },
     uiPosition: { type: "vec3", default: { x: 0, y: 0, z: 0 } },
     uiRotation: { type: "vec3", default: { x: 0, y: 0, z: 0 } },
     uiScale: { type: "vec3", default: { x: 1, y: 1, z: 1 } },
@@ -219,7 +223,12 @@ AFRAME.registerComponent("vpt-stream", {
     const params = {
       videoPath: proxySrc,
       meta: this.data.meta,
-      renderMode: "perspective"
+      renderMode: this.data.renderMode,
+      pointSize: this.data.pointSize,
+      scale: this.data.scale,
+      startat: this.data.startat,
+      thresholdMin: this.data.thresholdMin,
+      thresholdMax: this.data.thresholdMax
     };
     this.vptstream.load(params);
   }
