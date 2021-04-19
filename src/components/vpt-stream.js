@@ -1,7 +1,7 @@
 /**
- * Loads a depthkit capture\
- * @namespace depthkit-stream
- * @component depthkit-stream
+ * plays volumentric performance toolkit stream \
+ * @namespace vpt-stream
+ * @component vpt-stream
  */
 
 import { isNonCorsProxyDomain, guessContentType, proxiedUrlFor } from "../utils/media-url-utils";
@@ -9,9 +9,8 @@ import { buildAbsoluteURL } from "url-toolkit";
 import configs from "../utils/configs"
 import Hls from "hls.js"
 
-import "depthkit";
+import VPTStream from "vpt-stream";
 
-//AFrame DepthKit.js wrapper entity
 AFRAME.registerComponent("vpt-stream", {
   schema: {
     src: { type: "string" },
@@ -35,17 +34,17 @@ AFRAME.registerComponent("vpt-stream", {
    */
   init: function() {
 
-    //HACK: the way the depthkit library is built, it expects a global HLS object to exist
+    //HACK: the way the vpt-stream library is built, it expects a global HLS object to exist
     window.Hls = Hls;
 
     this.vptstream = new VPTStream();
     this.vptstream.hls_xhroverride = this.proxyHLS;
 
-    this.vptstream.addEventListener(STREAMEVENTS.PLAY_SUCCESS, function(event) {
+    this.vptstream.addEventListener(VPTStream.STREAMEVENTS.PLAY_SUCCESS, function(event) {
       console.log(`STREAMEVENTS.PLAY_SUCCESS ${event.type} ${event.message}`);
     });
 
-    this.vptstream.addEventListener(STREAMEVENTS.PLAY_ERROR, function(event) {
+    this.vptstream.addEventListener(VPTStream.STREAMEVENTS.PLAY_ERROR, function(event) {
       console.log(`STREAMEVENTS.PLAY_ERROR ${event.type} ${event.message}`);
     });
 
@@ -186,7 +185,6 @@ AFRAME.registerComponent("vpt-stream", {
 
   setVideoUrl(videoUrl) {
     if (this.vptstream) {
-      // console.log("depthkit-stream, setting video url: " + videoUrl);
       this.vptstream.setVideoUrl(videoUrl);
     }
   },
