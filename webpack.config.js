@@ -201,7 +201,7 @@ async function fetchAppConfigAndEnvironmentVars() {
   process.env.SHORTLINK_DOMAIN = shortlink_domain;
   process.env.CORS_PROXY_SERVER = `${localIp}:8080/cors-proxy`;
   process.env.THUMBNAIL_SERVER = thumbnail_server;
-  process.env.NON_CORS_PROXY_DOMAINS = `${localIp},hubs.local,localhost`;
+  process.env.NON_CORS_PROXY_DOMAINS = `${localIp},hubs.local,localhost,mux.com,volumetricperformance.art`;
 
   return appConfig;
 }
