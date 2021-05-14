@@ -13,6 +13,7 @@ const fetch = require("node-fetch");
 const packageLock = require("./package-lock.json");
 const request = require("request");
 const mime = require("mime");
+const internalIp = require("internal-ip");
 
 function getConfig() {
   const config = {};
@@ -147,6 +148,14 @@ function createDefaultAppConfig() {
     }
   }
 
+  const themesPath = path.join(__dirname, "themes.json");
+
+  if (fs.existsSync(themesPath)) {
+    const themesString = fs.readFileSync(themesPath).toString();
+    const themes = JSON.parse(themesString);
+    appConfig.themes = themes;
+  }
+
   return appConfig;
 }
 
@@ -186,11 +195,13 @@ async function fetchAppConfigAndEnvironmentVars() {
 
   const { shortlink_domain, thumbnail_server } = hubsConfigs.general;
 
+  const localIp = process.env.HOST_IP || (await internalIp.v4()) || "localhost";
+
   process.env.RETICULUM_SERVER = host;
   process.env.SHORTLINK_DOMAIN = shortlink_domain;
-  process.env.CORS_PROXY_SERVER = "localhost:8080/cors-proxy";
+  process.env.CORS_PROXY_SERVER = `${localIp}:8080/cors-proxy`;
   process.env.THUMBNAIL_SERVER = thumbnail_server;
-  process.env.NON_CORS_PROXY_DOMAINS = "hubs.local,localhost,mux.com";
+  process.env.NON_CORS_PROXY_DOMAINS = `${localIp},hubs.local,localhost`;
 
   return appConfig;
 }
@@ -244,12 +255,15 @@ module.exports = async (env, argv) => {
 
   const host = process.env.HOST_IP || env.localDev || env.remoteDev ? "hubs.local" : "localhost";
 
+  const liveReload = !!process.env.LIVE_RELOAD || false;
+
   const legacyBabelConfig = {
     presets: ["@babel/react", ["@babel/env", { targets: { ie: 11 } }]],
     plugins: [
       "@babel/proposal-class-properties",
       "@babel/proposal-object-rest-spread",
-      "@babel/plugin-transform-async-to-generator"
+      "@babel/plugin-transform-async-to-generator",
+      "@babel/plugin-proposal-optional-chaining"
     ]
   };
 
@@ -287,7 +301,8 @@ module.exports = async (env, argv) => {
       headers: {
         "Access-Control-Allow-Origin": "*"
       },
-      inline: !env.bundleAnalyzer,
+      hot: liveReload,
+      inline: liveReload,
       historyApiFallback: {
         rewrites: [
           { from: /^\/signin/, to: "/signin.html" },
@@ -376,6 +391,17 @@ module.exports = async (env, argv) => {
           loader: "babel-loader",
           options: legacyBabelConfig
         },
+        // Some JS assets are loaded at runtime and should be coppied unmodified and loaded using file-loader
+        {
+          test: [
+            path.resolve(__dirname, "node_modules", "three", "examples", "js", "libs", "basis", "basis_transcoder.js")
+          ],
+          loader: "file-loader",
+          options: {
+            outputPath: "assets/raw-js",
+            name: "[name]-[hash].[ext]"
+          }
+        },
         {
           test: /\.js$/,
           include: [path.resolve(__dirname, "src")],
@@ -398,6 +424,29 @@ module.exports = async (env, argv) => {
               }
             },
             "sass-loader"
+          ]
+        },
+        {
+          test: /\.svg$/,
+          include: [path.resolve(__dirname, "src", "react-components")],
+          use: [
+            {
+              loader: "@svgr/webpack",
+              options: {
+                titleProp: true,
+                replaceAttrValues: { "#000": "{props.color}" },
+                template: require("./src/react-components/icons/IconTemplate"),
+                svgoConfig: {
+                  plugins: {
+                    removeViewBox: false,
+                    mergePaths: false,
+                    convertShapeToPath: false,
+                    removeHiddenElems: false
+                  }
+                }
+              }
+            },
+            "url-loader"
           ]
         },
         {
