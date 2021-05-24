@@ -6,8 +6,8 @@
 
 import { isNonCorsProxyDomain, guessContentType, proxiedUrlFor } from "../utils/media-url-utils";
 import { buildAbsoluteURL } from "url-toolkit";
-import configs from "../utils/configs"
-import Hls from "hls.js"
+import configs from "../utils/configs";
+import Hls from "hls.js";
 
 import VPTStream from "vpt-stream";
 
@@ -33,7 +33,6 @@ AFRAME.registerComponent("vpt-stream", {
    * Called once when component is attached. Generally for initial setup.
    */
   init: function() {
-
     //HACK: the way the vpt-stream library is built, it expects a global HLS object to exist
     window.Hls = Hls;
 
@@ -65,7 +64,7 @@ AFRAME.registerComponent("vpt-stream", {
         });
     });
 
-    console.log("vpt-stream data")
+    console.log("vpt-stream data");
     console.log(this.data);
 
     //we need to have a "play/unmute" button for browsers that have strict autoplay settings
@@ -116,7 +115,7 @@ AFRAME.registerComponent("vpt-stream", {
     });
 
     //wait for the environment to finish loading
-    this.el.sceneEl.addEventListener("environment-scene-loaded", function(){
+    this.el.sceneEl.addEventListener("environment-scene-loaded", function() {
       console.log("onEnvironmentSceneLoaded");
       _this.loadMedia();
     });
@@ -151,8 +150,7 @@ AFRAME.registerComponent("vpt-stream", {
    * Called when a component is removed (e.g., via removeAttribute).
    * Generally undoes all modifications to the entity.
    */
-  remove: function() {
-  },
+  remove: function() {},
 
   /**
    * Called on each scene tick.
@@ -204,7 +202,7 @@ AFRAME.registerComponent("vpt-stream", {
       return;
     }
 
-    let url =  this.data.src;
+    let url = this.data.src;
     const fileExtension = url.substr(url.lastIndexOf(".") + 1);
 
     if (fileExtension != "m3u8") {
