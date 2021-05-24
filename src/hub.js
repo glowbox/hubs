@@ -1538,10 +1538,81 @@ document.addEventListener("DOMContentLoaded", async () => {
       sent: session_id === socket.params().session_id
     };
 
-    if (scene.is("vr-mode")) {
-      createInWorldLogMessage(incomingMessage);
+    if (body.startsWith("dk:"))  {
+      //dk: http://location/video.mp4
+      const commandParts = body.split(/\s+/);
+      console.log("depthkit " + commandParts[1]);
+
+      const player = document.createElement("a-entity");
+      player.setAttribute("depthkit-player",{
+        videoPath: commandParts[1],
+        metaPath:""
+      });
+
+      player.setAttribute("body-helper",{
+        type: "static", scaleAutoUpdate: false
+      });
+
+      scene.appendChild(player);
+    } else if( body.startsWith("live:")) {
+      const commandParts = body.split(/\s+/);
+      console.log("live " + commandParts);
+
+      if(commandParts.length > 2) {
+        
+        // if there is a third parameter, it is the ID of the a-frame element, so update the video source
+        // of an existing element instead of creating a new one.
+        
+        let element = document.getElementById(commandParts[2]);
+
+        // make sure the element exists, and has a depthkit-stream attached to it.
+        if((element != null) && element.hasOwnProperty("components") && element.components["depthkit-stream"] ) {
+          element.components["depthkit-stream"].setVideoUrl(commandParts[1]);
+        }
+
+      } else {
+
+        // No third parameter, instantiate a new depthkit-stream component.
+
+        const stream = document.createElement("a-entity");
+        stream.setAttribute("depthkit-stream",{
+          videoPath: commandParts[1],
+          renderMode: "points"
+        });
+
+        stream.setAttribute("body-helper",{
+          type: "static", scaleAutoUpdate: false
+        });
+
+        scene.appendChild(stream);
+
+      }
+
+    } else if (body.startsWith("ply:")) {
+      //ply: http://location/ply.ply
+      const commandParts = body.split(/\s+/);
+      console.log("ply " + commandParts);
+
+      const model = document.createElement("a-entity");
+      model.setAttribute("point-model",{
+        modelpath: commandParts[1],
+        texturepath: ""
+      });
+
+      model.setAttribute("body-helper",{
+        type: "static", scaleAutoUpdate: false
+      });
+
+      scene.appendChild(model);
+    }else{
+      if (scene.is("vr-mode")) {
+        createInWorldLogMessage(incomingMessage);
+      }
+  
+      addToPresenceLog(incomingMessage);
     }
-    
+
+    console.log("message:" + name + " " + type + " " + body);
     messageDispatch.receive(incomingMessage);
   });
 
