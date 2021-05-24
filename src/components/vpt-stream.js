@@ -133,7 +133,8 @@ AFRAME.registerComponent("vpt-stream", {
     // HACK HLS.js resolves relative urls internally, but our CORS proxying screws it up. Resolve relative to the original unproxied url.
     // TODO extend HLS.js to allow overriding of its internal resolving instead
     if (!u.startsWith("http")) {
-      u = buildAbsoluteURL(baseUrl, u.startsWith("/") ? u : `/${u}`);
+      // TODO this never happens when running via MUX which is the only way we have tested vpt-stream in Hubs so far.
+      u = buildAbsoluteURL(u, u.startsWith("/") ? u : `/${u}`);
     }
 
     //console.log("proxyHLS:" + proxiedUrlFor(u));
