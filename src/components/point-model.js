@@ -1,67 +1,47 @@
 /**
  * Loads a PLY model\
-* @namespace ply
+ * @namespace ply
  * @component point-model
  */
 
 import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader";
 
-import {
-  isNonCorsProxyDomain,
-  guessContentType,
-  proxiedUrlFor,
-} from "../utils/media-url-utils";
+import { guessContentType, proxiedUrlFor } from "../utils/media-url-utils";
 
-import {
-    Scene,
-    PerspectiveCamera,
-    WebGLRenderer,
-    TextureLoader,
-    OBJLoader,
-    MTLLoader,
-    AdditiveBlending,
-    NormalBlending,
-    PointsMaterial,
-    Points,
-    Vector3,
-    CatmullRomCurve3,
-    Object3D
-  } from 'three'
+import { TextureLoader, AdditiveBlending, NormalBlending, PointsMaterial, Points } from "three";
 
 AFRAME.registerComponent("point-model", {
-    schema: {
-      modelpath: { type: "string" },
-      texturepath: { type: "string" },
-      size: { type: "number", default: 0.01 },
-      alphaTest: { type: "number", default: 0.02 },
-      opacity: { type: "number", default: 0.05 },
-      transparent: {type: "boolean", default: true },
-      blending: {type:"string", default: "additive" },
-      sizeAttenuation: { type: "boolean", default:true}
-    },
-
-  init() {      
-    
-    let modelType = guessContentType( this.data.modelpath);
-     if( modelType == "model/ply"){
-      this.loadPly();
-    }else{
-      console.error("point-model: unknown content type " + modelType);
-    }
-    
+  schema: {
+    modelpath: { type: "string" },
+    texturepath: { type: "string" },
+    size: { type: "number", default: 0.01 },
+    alphaTest: { type: "number", default: 0.02 },
+    opacity: { type: "number", default: 0.05 },
+    transparent: { type: "boolean", default: true },
+    blending: { type: "string", default: "additive" },
+    sizeAttenuation: { type: "boolean", default: true }
   },
 
-  loadPly(){
-    console.log("Load PLY");
-    let el = this.el;
-    let loader = new PLYLoader();
+  init() {
+    const modelType = guessContentType(this.data.modelpath);
+    if (modelType == "model/ply") {
+      this.loadPly();
+    } else {
+      console.error("point-model: unknown content type " + modelType + " " + this.data.modelpath);
+      console.log(this.data);
+    }
+  },
 
-    if( this.data.texturepath.length < 5){
-      this.data.texturepath  = this.data.modelpath.substring(0, this.data.modelpath.length - 4) + ".png";
+  loadPly() {
+    console.log("Load PLY");
+    const el = this.el;
+    const loader = new PLYLoader();
+
+    if (this.data.texturepath.length < 5) {
+      this.data.texturepath = this.data.modelpath.substring(0, this.data.modelpath.length - 4) + ".png";
     }
 
-    
-    const sprite = new TextureLoader().load( proxiedUrlFor(this.data.texturepath) );
+    const sprite = new TextureLoader().load(proxiedUrlFor(this.data.texturepath));
     const blendmode = this.data.blending == "additive" ? AdditiveBlending : NormalBlending;
 
     const pointsMaterial = new PointsMaterial({
@@ -77,26 +57,25 @@ AFRAME.registerComponent("point-model", {
       map: sprite
     });
 
-    loader.load(  proxiedUrlFor(this.data.modelpath), function ( geometry ) {
-
-      console.log("point-model ply loaded ");            
-      const pointCloud = new Points(geometry, pointsMaterial);
-      pointCloud.sortParticles = true;    
-      el.object3D.add(pointCloud);
-      el.emit("model-loaded", { projection: ""});
-
-      }, function(text){ 
+    loader.load(
+      proxiedUrlFor(this.data.modelpath),
+      function(geometry) {
+        console.log("point-model ply loaded ");
+        const pointCloud = new Points(geometry, pointsMaterial);
+        pointCloud.sortParticles = true;
+        el.object3D.add(pointCloud);
+        el.emit("model-loaded", { projection: "" });
+      },
+      function(text) {
         console.log("point-model ply progress " + text);
-      }, function(error){ 
+      },
+      function(error) {
         console.log("point-model ply error " + error);
-      });
+      }
+    );
   },
 
-  update() {
+  update() {},
 
-  },
-
-  tick() {
-
-  }
+  tick() {}
 });
