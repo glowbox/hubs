@@ -195,7 +195,10 @@ class UIRoot extends Component {
 
     objectInfo: null,
     objectSrc: "",
-    sidebarId: null
+    sidebarId: null,
+
+    //TODO: glowwbox hack to work around autoplay
+    showAutoplay: false
   };
 
   constructor(props) {
@@ -306,8 +309,8 @@ class UIRoot extends Component {
     });
 
     //TODO: glowwbox hack to allow lobby visitors with strict auto play to still start the stream
-    this.props.scene.addEventListener("show_autoplay_dialog", e => this.setState({ showAutoplay: true, streamVideoRef:e.detail.videoref }));
-    this.props.scene.addEventListener("hide_autoplay_dialog", e => this.setState({ showAutoplay: false, streamVideoRef:null }));
+    this.props.scene.addEventListener("show_autoplay_dialog", () => this.setState({ showAutoplay: true }));
+    this.props.scene.addEventListener("hide_autoplay_dialog", () => this.setState({ showAutoplay: false }));
 
     const scene = this.props.scene;
 
@@ -1514,6 +1517,17 @@ class UIRoot extends Component {
                           preset="accept"
                           onClick={() => this.setState({ watching: false })}
                         />
+                        {this.state.showAutoplay && (
+                          <ToolbarButton
+                            icon={<WarningCircleIcon />}
+                            label={<FormattedMessage id="toolbar.autoplay" defaultMessage="Play Stream" />}
+                            preset="accept"
+                            onClick={() => {
+                              this.props.scene.emit("autoplay_clicked");
+                            }}
+                          />
+                        )}
+
                         {enableSpectateVRButton && (
                           <ToolbarButton
                             icon={<VRIcon />}

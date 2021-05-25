@@ -49,23 +49,13 @@ AFRAME.registerComponent("vpt-stream", {
 
     this.el.object3D.add(this.vptstream);
 
-    //listen for auto play events
-    this.el.sceneEl.addEventListener("autoplay_clicked", () => {
-      const _this = this;
-      this.vptstream.video
-        .play()
-        .then(function() {
-          console.log("playing");
-          _this.vptstream.playing = true;
-        })
-        .catch(function(error) {
-          console.log(`error, ${error}`);
-          _this.vptstream.play = false;
-        });
-    });
+    //keep a ref to the video element so we can control it once we are loaded
+    const _this = this;
 
     console.log("vpt-stream data");
     console.log(this.data);
+
+    //TODO move autoplay into it's own AFRAME component
 
     //we need to have a "play/unmute" button for browsers that have strict autoplay settings
     this.autoplayUi = document.createElement("a-entity");
@@ -86,41 +76,43 @@ AFRAME.registerComponent("vpt-stream", {
     this.autoplayUi.object3D.scale.set(scale.x, scale.y, scale.z);
     this.el.appendChild(this.autoplayUi);
 
-    //keep a ref to the video element so we can control it once we are loaded
-    const _this = this;
-
     this.autoplayUi.addEventListener("loaded", function() {
-      this.onClick = function() {
-        console.log("play/unmute clicked");
-
-        _this.vptstream.video
-          .play()
-          .then(() => {
-            console.log("playing");
-            _this.vptstream.playing = true;
-          })
-          .catch(function(error) {
-            console.log(`error, ${error}`);
-            _this.vptstream.play = false;
-          });
-      };
-      const btn = this.querySelector(".unmute-ui");
-
       if (noBillboard) {
-        btn.removeAttribute("billboard");
+        this.removeAttribute("billboard");
       }
 
-      btn.object3D.addEventListener("interact", this.onClick);
+      const btn = this.querySelector(".unmute-ui");
+      btn.object3D.addEventListener("interact", function handler() {
+        _this.playMedia();
+        this.removeEventListener("interact", handler);
+      });
+
       this.setAttribute("visible", false);
+    });
+
+    //listen for auto play events from the tool bar button
+    this.el.sceneEl.addEventListener("autoplay_clicked", () => {
+      _this.playMedia();
     });
 
     //wait for the environment to finish loading
     this.el.sceneEl.addEventListener("environment-scene-loaded", function() {
-      console.log("onEnvironmentSceneLoaded");
       _this.loadMedia();
     });
+  },
 
-    //this.loadMedia();
+  playMedia: function() {
+    console.log("playMedia");
+    this.vptstream.video
+      .play()
+      .then(() => {
+        console.log("playMedia playing success");
+        this.vptstream.playing = true;
+      })
+      .catch(function(error) {
+        console.log(`playMedia error, ${error}`);
+        this.vptstream.play = false;
+      });
   },
 
   proxyHLS: function(xhr, u) {
@@ -159,13 +151,18 @@ AFRAME.registerComponent("vpt-stream", {
     const dT = performance.now() - this.vptstream.LoadTime;
 
     if (this.vptstream.LoadTime > 0 && dT > this.data.uiDelay) {
+      const uiVisible = this.autoplayUi.getAttribute("visible");
       //console.log("loadTime:" + this.videoTexture.LoadTime + " dT:" + dT+ " video currentTime:" +  this.videoTexture.video.currentTime )
       if (this.vptstream.playing) {
-        this.el.sceneEl.emit("hide_autoplay_dialog", { videoref: this.vptstream.video });
-        this.autoplayUi.setAttribute("visible", false);
+        if (uiVisible) {
+          this.el.sceneEl.emit("hide_autoplay_dialog", { videoref: this.vptstream.video });
+          this.autoplayUi.setAttribute("visible", false);
+        }
       } else {
-        this.el.sceneEl.emit("show_autoplay_dialog", { videoref: this.vptstream.video });
-        this.autoplayUi.setAttribute("visible", true);
+        if (!uiVisible) {
+          this.el.sceneEl.emit("show_autoplay_dialog", { videoref: this.vptstream.video });
+          this.autoplayUi.setAttribute("visible", true);
+        }
       }
     }
   },
